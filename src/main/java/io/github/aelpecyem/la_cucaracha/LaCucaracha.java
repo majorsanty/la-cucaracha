@@ -11,6 +11,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
@@ -39,6 +40,9 @@ public class LaCucaracha implements ModInitializer {
 	public static final Item SPLASH_POTION_ROACH_ITEM = new SplashBottledRoachItem();
 	public static final Item ROACH_SPAWN_EGG_ITEM = new SpawnEggItem(ROACH_ENTITY_TYPE, 0x3d2a0f, 0x42392c,
 																	 new QuiltItemSettings().group(ItemGroup.MISC));
+	public static final SoundEvent ROACH_SCURRY_SOUND_EVENT = new SoundEvent(id("roach.scurry"));
+	public static final SoundEvent ROACH_HURT_SOUND_EVENT = new SoundEvent(id("roach.hurt"));
+	public static final SoundEvent ROACH_DEATH_SOUND_EVENT = new SoundEvent(id("roach.death"));
 
 
 	@Override
@@ -49,6 +53,9 @@ public class LaCucaracha implements ModInitializer {
 		Registry.register(Registry.ITEM, id("bottled_roach"), BOTTLED_ROACH_ITEM);
 		Registry.register(Registry.ITEM, id("splash_bottled_roach"), SPLASH_POTION_ROACH_ITEM);
 		Registry.register(Registry.ITEM, id("roach_spawn_egg"), ROACH_SPAWN_EGG_ITEM);
+		Registry.register(Registry.SOUND_EVENT, id("roach.scurry"), ROACH_SCURRY_SOUND_EVENT);
+		Registry.register(Registry.SOUND_EVENT, id("roach.hurt"), ROACH_HURT_SOUND_EVENT);
+		Registry.register(Registry.SOUND_EVENT, id("roach.death"), ROACH_DEATH_SOUND_EVENT);
 	}
 
 	public static Identifier id(String s) {

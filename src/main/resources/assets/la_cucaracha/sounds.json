@@ -1,0 +1,29 @@
+{
+  "roach.scurry": {
+    "subtitle": "subtitles.la_cucaracha.roach.scurry",
+    "sounds": [
+      "la_cucaracha:roach_scurry1",
+      "la_cucaracha:roach_scurry2",
+      "la_cucaracha:roach_scurry3"
+    ]
+  },
+  "roach.hurt": {
+    "subtitle": "subtitles.la_cucaracha.roach.hurt",
+    "sounds": [
+      "la_cucaracha:roach_hurt1",
+      "la_cucaracha:roach_hurt2",
+      "la_cucaracha:roach_hurt3",
+      "la_cucaracha:roach_hurt4",
+      "la_cucaracha:roach_hurt5",
+      "la_cucaracha:roach_hurt6"
+    ]
+  },
+  "roach.death": {
+    "subtitle": "subtitles.la_cucaracha.roach.death",
+    "sounds": [
+      "la_cucaracha:roach_death1",
+      "la_cucaracha:roach_death2",
+      "la_cucaracha:roach_death3"
+    ]
+  }
+}
