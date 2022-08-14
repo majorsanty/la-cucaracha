@@ -339,7 +339,7 @@ public class RoachEntity extends PathAwareEntity {
 
 	@Override
 	protected void playStepSound(BlockPos pos, BlockState state) {
-		this.playSound(LaCucaracha.ROACH_SCURRY_SOUND_EVENT, 0.05F, 1.0F);
+		this.playSound(LaCucaracha.ROACH_SCURRY_SOUND_EVENT, 0.1F, 1.0F);
 	}
 
 
