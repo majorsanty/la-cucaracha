@@ -7,6 +7,7 @@ import net.minecraft.client.render.entity.EntityRendererFactory.Context;
 import net.minecraft.client.render.entity.MobEntityRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3f;
 
 import io.github.aelpecyem.la_cucaracha.LaCucaracha;
 import io.github.aelpecyem.la_cucaracha.RoachEntity;
@@ -19,10 +20,14 @@ public class RoachEntityRenderer extends MobEntityRenderer<RoachEntity, RoachEnt
 
 	@Override
 	protected void setupTransforms(RoachEntity entity, MatrixStack matrices, float animationProgress, float bodyYaw, float tickDelta) {
-		float size = 0.25F + entity.getSize() / 10F;
-		matrices.scale(size, size, size);
-		shadowRadius = size / 4;
 		super.setupTransforms(entity, matrices, animationProgress, bodyYaw, tickDelta);
+		if (entity.isRoachClimbing()) {
+			matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(90F));
+			matrices.translate(0, -0.1, -0.1);
+		}
+		float size = 0.25F + entity.getSize() / 10F;
+		shadowRadius = size / 4;
+		matrices.scale(size, size, size);
 	}
 
 	@Override

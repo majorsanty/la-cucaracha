@@ -77,7 +77,7 @@ public class RoachEntityModel extends EntityModel<RoachEntity> {
 
 	@Override
 	public void setAngles(RoachEntity entity, float limbAngle, float limbDistance, float animationProgress, float headYaw, float headPitch) {
-		boolean dancing = false;
+		boolean dancing = entity.isDancing();
 		int twitchInterval = 60 + entity.getId() % 20;
 		if (animationProgress % twitchInterval < 5) {
 			float progress = MathHelper.TAU * (animationProgress % 5) / 5F;
@@ -87,7 +87,7 @@ public class RoachEntityModel extends EntityModel<RoachEntity> {
 			rAntenna.yaw = 0;
 			lAntenna.yaw = 0;
 		}
-		float cycle = (MathHelper.cos(limbAngle * 0.6662F * 2.0F)) * 0.4F * limbDistance;
+		float cycle = dancing ? 0 : (MathHelper.cos(limbAngle * 0.6662F * 2.0F)) * 0.4F * limbDistance;
 		rLeg01.yaw = -0.6545F - cycle;
 		lLeg01.yaw = 0.6545F - cycle;
 		rLeg02.yaw = cycle;
@@ -95,7 +95,7 @@ public class RoachEntityModel extends EntityModel<RoachEntity> {
 		lLeg03.yaw = -1.2217F - cycle * 2;
 		rLeg03.yaw = 1.2217F - cycle * 2;
 		if (dancing) {
-			roach.yaw = animationProgress * 0.2F;
+			roach.yaw = animationProgress * (entity.getId() % 2 == 0 ? 0.2F : -0.2F);
 			roach.pitch = -MathHelper.PI * 0.25F;
 			roach.pivotY = 16 + MathHelper.sin(animationProgress * 0.75F) * 2;
 		} else {
