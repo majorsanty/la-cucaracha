@@ -8,6 +8,7 @@ import net.minecraft.entity.EntityData;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.NoPenaltyTargeting;
 import net.minecraft.entity.ai.goal.EscapeDangerGoal;
@@ -16,6 +17,7 @@ import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.ai.goal.RevengeGoal;
 import net.minecraft.entity.ai.goal.TargetGoal;
 import net.minecraft.entity.ai.goal.WanderAroundGoal;
+import net.minecraft.entity.ai.pathing.EntityNavigation;
 import net.minecraft.entity.ai.pathing.MobNavigation;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.attribute.DefaultAttributeContainer.Builder;
@@ -26,13 +28,17 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.SilverfishEntity;
+import net.minecraft.entity.passive.FoxEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsage;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
+import net.minecraft.particle.ItemStackParticleEffect;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
@@ -40,6 +46,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
@@ -49,25 +56,33 @@ import net.minecraft.world.event.PositionSource;
 import net.minecraft.world.event.listener.DynamicGameEventListener;
 import net.minecraft.world.event.listener.GameEventListener;
 
+import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
+import javax.sound.sampled.EnumControl;
 import org.jetbrains.annotations.Nullable;
+import org.quiltmc.qsl.networking.api.PlayerLookup;
 
 public class RoachEntity extends PathAwareEntity {
 
 	private static final TrackedData<Integer> SIZE = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final TrackedData<Byte> ROACH_FLAGS = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.BYTE);
+	private static final TrackedData<Integer> TARGET_FOOD_ENTITY_ID = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
 	private final DynamicGameEventListener<JukeboxListener> jukeboxListener;
 	private boolean swarmMode, summoned = false;
 	private BlockPos trackedJukebox;
+	private int eatingTicks;
 
 	protected RoachEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
 		super(entityType, world);
 		PositionSource positionSource = new EntityPositionSource(this, this.getStandingEyeHeight());
 		this.jukeboxListener = new DynamicGameEventListener<>(new JukeboxListener(positionSource, GameEvent.JUKEBOX_PLAY.getRange()));
 		((MobNavigation) getNavigation()).setAvoidSunlight(true);
+		getNavigation().setRangeMultiplier(0.1F);
 	}
 
 	public static Builder createRoachAttributes() {
@@ -83,15 +98,16 @@ public class RoachEntity extends PathAwareEntity {
 				return !isAggressive() && super.canStart();
 			}
 		});
-		this.goalSelector.add(1, new WanderAroundGoal(this, 1.8, 30, true) {
+		this.goalSelector.add(1, new EatFoodGoal());
+		this.goalSelector.add(2, new WanderAroundGoal(this, 1.8, 30, true) {
 			@Nullable
 			@Override
 			protected Vec3d getWanderTarget() {
 				return NoPenaltyTargeting.find(this.mob, 3, 1);
 			}
 		});
-		this.goalSelector.add(2, new GroupTogetherGoal());
-		this.goalSelector.add(3, new MeleeAttackGoal(this, 1.5, false) {
+		this.goalSelector.add(3, new GroupTogetherGoal());
+		this.goalSelector.add(4, new MeleeAttackGoal(this, 1.5, false) {
 			@Override
 			public boolean canStart() {
 				return isAggressive() && super.canStart();
@@ -103,7 +119,7 @@ public class RoachEntity extends PathAwareEntity {
 				return isAggressive() && super.canStart();
 			}
 		}.setGroupRevenge());
-		this.targetSelector.add(2, new TargetGoal<>(this, PlayerEntity.class, true) {
+		this.targetSelector.add(2, new TargetGoal<>(this, PlayerEntity.class, true, player -> player.isHolding(ItemStack::isFood)) {
 			@Override
 			public boolean canStart() {
 				return isAggressive() && super.canStart();
@@ -117,6 +133,7 @@ public class RoachEntity extends PathAwareEntity {
 		super.initDataTracker();
 		dataTracker.startTracking(SIZE, 1);
 		dataTracker.startTracking(ROACH_FLAGS, (byte) 0b0000_0000);
+		dataTracker.startTracking(TARGET_FOOD_ENTITY_ID, -1);
 	}
 
 	@Override
@@ -130,6 +147,43 @@ public class RoachEntity extends PathAwareEntity {
 				&& world.getBlockState(trackedJukebox).get(JukeboxBlock.HAS_RECORD)
 				&& trackedJukebox.isWithinDistance(getBlockPos(), GameEvent.JUKEBOX_PLAY.getRange()))) {
 				setDancing(false, null);
+			}
+		}
+		int targetFood = getTargetFoodEntityId();
+
+		if (targetFood > -1) {
+			Entity food = getTargetFoodEntity();
+			if (getMainHandStack().isEmpty()) {
+				if (food instanceof ItemEntity item && !item.isRemoved() && item.getStack().isFood()) {
+					setStackInHand(Hand.MAIN_HAND, item.getStack().split(1));
+				} else {
+					setTargetFoodEntityId(-1);
+				}
+			} else {
+				ItemStack stack = getMainHandStack();
+				if (stack.isFood()) {
+					if (world.isClient) {
+						world.addParticle(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), getX(), getY(), getZ(),
+										  random.nextGaussian() * 0.1, random.nextFloat() * 0.1, random.nextGaussian() * 0.1);
+					} else {
+						eatingTicks++;
+						if (eatingTicks > 0) {
+							this.playSound(SoundEvents.ENTITY_GENERIC_EAT, 0.1F + 0.05F * (float) this.random.nextInt(2),
+										   (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.2F);
+							if (eatingTicks > stack.getMaxUseTime()) {
+								if (stack.getItem().getRecipeRemainder() != null) {
+									dropItem(stack.getItem().getRecipeRemainder());
+								}
+								heal(stack.getItem().getFoodComponent().getHunger());
+								eatFood(world, stack);
+								eatingTicks = -10;
+							}
+						}
+					}
+				} else {
+					dropStack(stack);
+					setStackInHand(Hand.MAIN_HAND, ItemStack.EMPTY);
+				}
 			}
 		}
 	}
@@ -155,6 +209,14 @@ public class RoachEntity extends PathAwareEntity {
 	}
 
 	@Override
+	public void tickMovement() {
+		super.tickMovement();
+		if (!world.isClient) {
+			setRoachClimbing(horizontalCollision);
+		}
+	}
+
+	@Override
 	protected void mobTick() {
 		super.mobTick();
 		if (age % 40 == 0) {
@@ -171,14 +233,6 @@ public class RoachEntity extends PathAwareEntity {
 					}
 				}
 			}
-		}
-	}
-
-	@Override
-	public void tickMovement() {
-		super.tickMovement();
-		if (!world.isClient) {
-			setRoachClimbing(horizontalCollision);
 		}
 	}
 
@@ -221,21 +275,20 @@ public class RoachEntity extends PathAwareEntity {
 		return getRoachFlag(0);
 	}
 
-	public boolean isRoachClimbing() {
-		return getRoachFlag(1);
-	}
-
-	public void setRoachClimbing(boolean climbing) {
-		setRoachFlag(1, climbing);
-	}
-
-	@Override
-	public boolean isClimbing() {
-		return isRoachClimbing();
-	}
-
 	protected boolean getRoachFlag(int index) {
 		return (this.dataTracker.get(ROACH_FLAGS) & 1 << index) != 0;
+	}
+
+	public int getTargetFoodEntityId() {
+		return this.dataTracker.get(TARGET_FOOD_ENTITY_ID);
+	}
+
+	public void setTargetFoodEntityId(int id) {
+		this.dataTracker.set(TARGET_FOOD_ENTITY_ID, id);
+	}
+
+	public Entity getTargetFoodEntity() {
+		return world.getEntityById(getTargetFoodEntityId());
 	}
 
 	public boolean isAggressive() {
@@ -262,9 +315,33 @@ public class RoachEntity extends PathAwareEntity {
 	public boolean damage(DamageSource source, float amount) {
 		if (super.damage(source, amount)) {
 			setDancing(false, trackedJukebox);
+			setTargetFoodEntityId(-1);
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	protected SoundEvent getHurtSound(DamageSource source) {
+		return LaCucaracha.ROACH_HURT_SOUND_EVENT;
+	}
+
+	@Override
+	protected SoundEvent getDeathSound() {
+		return LaCucaracha.ROACH_DEATH_SOUND_EVENT;
+	}
+
+	@Override
+	public boolean isClimbing() {
+		return isRoachClimbing();
+	}
+
+	public boolean isRoachClimbing() {
+		return getRoachFlag(1);
+	}
+
+	public void setRoachClimbing(boolean climbing) {
+		setRoachFlag(1, climbing);
 	}
 
 	@Override
@@ -293,6 +370,11 @@ public class RoachEntity extends PathAwareEntity {
 
 	public EntityDimensions getDimensions(EntityPose pose) {
 		return super.getDimensions(pose).scaled(1);
+	}
+
+	@Override
+	protected void playStepSound(BlockPos pos, BlockState state) {
+		this.playSound(LaCucaracha.ROACH_SCURRY_SOUND_EVENT, 0.1F, 1.0F);
 	}
 
 	@Override
@@ -327,21 +409,70 @@ public class RoachEntity extends PathAwareEntity {
 		}
 	}
 
-	@Override
-	protected SoundEvent getHurtSound(DamageSource source) {
-		return LaCucaracha.ROACH_HURT_SOUND_EVENT;
-	}
+	private class EatFoodGoal extends Goal {
+		Path path;
+		int checkTicks = 0;
+		Entity target;
 
-	@Override
-	protected SoundEvent getDeathSound() {
-		return LaCucaracha.ROACH_DEATH_SOUND_EVENT;
-	}
+		public EatFoodGoal() {
+			setControls(EnumSet.of(Control.TARGET, Control.MOVE));
+		}
 
-	@Override
-	protected void playStepSound(BlockPos pos, BlockState state) {
-		this.playSound(LaCucaracha.ROACH_SCURRY_SOUND_EVENT, 0.1F, 1.0F);
-	}
+		@Override
+		public boolean canStart() {
+			if (checkTicks-- <= 0 && getTarget() == null) {
+				Entity foodTarget = getTargetFoodEntity();
+				if (foodTarget != null && distanceTo(foodTarget) < 2) {
+					return false;
+				}
+				List<Entity> foods = world.getOtherEntities(RoachEntity.this, getBoundingBox().expand(16),
+									   entity -> entity instanceof ItemEntity i && i.getStack().isFood() && i.isOnGround());
+				foods.sort(Comparator.comparingDouble(e -> e.distanceTo(RoachEntity.this)));
+				for (Entity food : foods) {
+					this.path = getNavigation().findPathTo(food, 16);
+					if (path != null) {
+						target = food;
+						return true;
+					}
+				}
+			}
+			return false;
+		}
 
+		@Override
+		public boolean shouldContinue() {
+			return path != null && !path.isFinished() && target != null && !target.isRemoved();
+		}
+
+		@Override
+		public void start() {
+			getNavigation().startMovingTo(target.getX(), target.getY() + 1, target.getZ(), 1.5F);
+		}
+
+		@Override
+		public void stop() {
+			checkTicks = 20;
+			target = null;
+		}
+
+		@Override
+		public void tick() {
+			super.tick();
+			if (checkTicks-- <= 0) {
+				this.path = getNavigation().findPathTo(target, 16);
+				if (path == null) {
+					stop();
+					return;
+				}
+				checkTicks = 20;
+				getNavigation().startMovingTo(target.getX(), target.getY() + 1, target.getZ(), 1.5F);
+			}
+			if (distanceTo(target) < 1.5) {
+				setTargetFoodEntityId(target.getId());
+				stop();
+			}
+		}
+	}
 
 	private class GroupTogetherGoal extends Goal {
 
