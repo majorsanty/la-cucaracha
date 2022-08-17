@@ -1,6 +1,7 @@
 package io.github.aelpecyem.la_cucaracha;
 
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
+import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -10,12 +11,15 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.particle.DefaultParticleType;
+import net.minecraft.particle.ParticleType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 import io.netty.buffer.Unpooled;
+import org.lwjgl.system.Pointer.Default;
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
 import org.quiltmc.qsl.item.setting.api.QuiltItemSettings;
@@ -44,7 +48,7 @@ public class LaCucaracha implements ModInitializer {
 	public static final SoundEvent ROACH_HURT_SOUND_EVENT = new SoundEvent(id("roach.hurt"));
 	public static final SoundEvent ROACH_DEATH_SOUND_EVENT = new SoundEvent(id("roach.death"));
 
-
+	public static final DefaultParticleType ROACH_PARTICLE_EFFECT = FabricParticleTypes.simple();
 	@Override
 	public void onInitialize(ModContainer mod) {
 		Registry.register(Registry.ENTITY_TYPE, id("roach"), ROACH_ENTITY_TYPE);
@@ -56,6 +60,7 @@ public class LaCucaracha implements ModInitializer {
 		Registry.register(Registry.SOUND_EVENT, id("roach.scurry"), ROACH_SCURRY_SOUND_EVENT);
 		Registry.register(Registry.SOUND_EVENT, id("roach.hurt"), ROACH_HURT_SOUND_EVENT);
 		Registry.register(Registry.SOUND_EVENT, id("roach.death"), ROACH_DEATH_SOUND_EVENT);
+		Registry.register(Registry.PARTICLE_TYPE, id("roaches"), ROACH_PARTICLE_EFFECT);
 	}
 
 	public static Identifier id(String s) {
