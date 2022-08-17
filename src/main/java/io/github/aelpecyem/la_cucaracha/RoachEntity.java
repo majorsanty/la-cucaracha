@@ -26,6 +26,8 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.SilverfishEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -184,6 +186,12 @@ public class RoachEntity extends PathAwareEntity {
 				}
 			}
 		}
+	}
+
+	@Override
+	public void onPlayerCollision(PlayerEntity player) {
+		super.onPlayerCollision(player);
+		player.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 60, 0));
 	}
 
 	@Override
