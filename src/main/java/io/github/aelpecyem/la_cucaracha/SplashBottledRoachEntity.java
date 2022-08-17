@@ -28,6 +28,10 @@ public class SplashBottledRoachEntity extends ThrownItemEntity {
 		super(LaCucaracha.SPLASH_BOTTLED_ROACH_ENTITY_TYPE, livingEntity, world);
 	}
 
+	public SplashBottledRoachEntity(World world, double x, double y, double z) {
+		super(LaCucaracha.SPLASH_BOTTLED_ROACH_ENTITY_TYPE, x, y, z, world);
+	}
+
 	@Override
 	protected void onCollision(HitResult hitResult) {
 		super.onCollision(hitResult);

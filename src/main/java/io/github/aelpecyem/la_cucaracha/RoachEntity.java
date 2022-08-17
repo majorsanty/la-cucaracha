@@ -9,6 +9,7 @@ import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.NoPenaltyTargeting;
 import net.minecraft.entity.ai.goal.EscapeDangerGoal;
@@ -17,7 +18,6 @@ import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.ai.goal.RevengeGoal;
 import net.minecraft.entity.ai.goal.TargetGoal;
 import net.minecraft.entity.ai.goal.WanderAroundGoal;
-import net.minecraft.entity.ai.pathing.EntityNavigation;
 import net.minecraft.entity.ai.pathing.MobNavigation;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.attribute.DefaultAttributeContainer.Builder;
@@ -28,7 +28,6 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.SilverfishEntity;
-import net.minecraft.entity.passive.FoxEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsage;
@@ -38,7 +37,6 @@ import net.minecraft.nbt.NbtHelper;
 import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
@@ -46,7 +44,6 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
@@ -59,12 +56,10 @@ import net.minecraft.world.event.listener.GameEventListener;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
-import javax.sound.sampled.EnumControl;
 import org.jetbrains.annotations.Nullable;
-import org.quiltmc.qsl.networking.api.PlayerLookup;
 
 public class RoachEntity extends PathAwareEntity {
 
@@ -74,6 +69,7 @@ public class RoachEntity extends PathAwareEntity {
 
 	private final DynamicGameEventListener<JukeboxListener> jukeboxListener;
 	private boolean swarmMode, summoned = false;
+	private UUID specificTarget;
 	private BlockPos trackedJukebox;
 	private int eatingTicks;
 
@@ -119,7 +115,9 @@ public class RoachEntity extends PathAwareEntity {
 				return isAggressive() && super.canStart();
 			}
 		}.setGroupRevenge());
-		this.targetSelector.add(2, new TargetGoal<>(this, PlayerEntity.class, true, player -> player.isHolding(ItemStack::isFood)) {
+		this.targetSelector.add(2, new TargetGoal<>(this, LivingEntity.class, true, target ->
+			!(target instanceof RoachEntity) &&
+				((specificTarget != null && target.getUuid().equals(specificTarget)) || target.isHolding(ItemStack::isFood))) {
 			@Override
 			public boolean canStart() {
 				return isAggressive() && super.canStart();
@@ -197,6 +195,9 @@ public class RoachEntity extends PathAwareEntity {
 		if (trackedJukebox != null) {
 			nbt.put("JukeboxPos", NbtHelper.fromBlockPos(trackedJukebox));
 		}
+		if (specificTarget != null) {
+			nbt.putUuid("SpecificTarget", specificTarget);
+		}
 	}
 
 	@Override
@@ -206,6 +207,13 @@ public class RoachEntity extends PathAwareEntity {
 		this.summoned = nbt.getBoolean("Summoned");
 		dataTracker.set(ROACH_FLAGS, nbt.getByte("RoachFlags"));
 		this.trackedJukebox = nbt.contains("JukeboxPos") ? NbtHelper.toBlockPos(nbt.getCompound("JukeboxPos")) : null;
+		if (nbt.contains("SpecificTarget")) {
+			this.specificTarget = nbt.getUuid("SpecificTarget");
+		}
+	}
+
+	public void setSpecificTarget(UUID specificTarget) {
+		this.specificTarget = specificTarget;
 	}
 
 	@Override
