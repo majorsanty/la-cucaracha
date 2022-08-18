@@ -5,7 +5,10 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "BrewingRecipeRegistryMixin",
-    "BrewingStandScreenHandlerPotionSlotMixin"
+    "BrewingStandScreenHandlerPotionSlotMixin",
+    "CatchAndEatEntityTaskMixin",
+    "CatEntityMixin",
+    "VillagerTaskListProviderMixin"
   ],
   "client": [],
   "injectors": {
