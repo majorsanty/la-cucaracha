@@ -12,17 +12,20 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.particle.DefaultParticleType;
-import net.minecraft.particle.ParticleType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
+import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.Difficulty;
+import net.minecraft.world.gen.feature.StructureFeature;
 
 import io.netty.buffer.Unpooled;
-import org.lwjgl.system.Pointer.Default;
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
 import org.quiltmc.qsl.item.setting.api.QuiltItemSettings;
+import org.quiltmc.qsl.lifecycle.api.event.ServerTickEvents;
+import org.quiltmc.qsl.lifecycle.api.event.ServerWorldTickEvents;
 import org.quiltmc.qsl.networking.api.PlayerLookup;
 import org.quiltmc.qsl.networking.api.ServerPlayNetworking;
 import org.slf4j.Logger;
@@ -33,7 +36,9 @@ public class LaCucaracha implements ModInitializer {
 	public static final String MOD_ID = "la_cucaracha";
 	public static final Logger LOGGER = LoggerFactory.getLogger("La Cucaracha");
 
-	public static Identifier PARTICLE_PACKET = id("roach_potion");
+	public static final TagKey<StructureFeature> ROACH_STRUCTURES = TagKey.of(Registry.STRUCTURE_WORLDGEN, id("roach_structure"));
+
+	public static final Identifier PARTICLE_PACKET = id("roach_potion");
 
 	public static final EntityType<RoachEntity> ROACH_ENTITY_TYPE = EntityType.Builder.create(RoachEntity::new, SpawnGroup.MONSTER)
 		.setDimensions(0.25F, 0.25F).maxTrackingRange(8).build(MOD_ID + ":roach");
@@ -61,6 +66,11 @@ public class LaCucaracha implements ModInitializer {
 		Registry.register(Registry.SOUND_EVENT, id("roach.hurt"), ROACH_HURT_SOUND_EVENT);
 		Registry.register(Registry.SOUND_EVENT, id("roach.death"), ROACH_DEATH_SOUND_EVENT);
 		Registry.register(Registry.PARTICLE_TYPE, id("roaches"), ROACH_PARTICLE_EFFECT);
+		RoachSpawner roachSpawner = new RoachSpawner();
+		ServerWorldTickEvents.END.register((server, world) -> {
+			roachSpawner.spawn(world, world.getDifficulty() != Difficulty.PEACEFUL, server.shouldSpawnAnimals());
+		});
+
 	}
 
 	public static Identifier id(String s) {
