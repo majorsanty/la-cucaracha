@@ -419,7 +419,7 @@ public class RoachEntity extends PathAwareEntity {
 	}
 
 	public EntityDimensions getDimensions(EntityPose pose) {
-		return super.getDimensions(pose).scaled(1);
+		return super.getDimensions(pose).scaled(1 + getSize() / 5F);
 	}
 
 	@Override
