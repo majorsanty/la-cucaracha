@@ -66,6 +66,14 @@ import org.jetbrains.annotations.Nullable;
 public class RoachEntity extends PathAwareEntity {
 
 	private static final TrackedData<Integer> SIZE = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
+	/**
+	 * Roach Flags Indexes:
+	 * 0 - Dancing
+	 * 1 - Climbing
+	 * 2 - Flying
+	 * 3 - ???
+	 * 4,5 - Variant
+	 */
 	private static final TrackedData<Byte> ROACH_FLAGS = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.BYTE);
 	private static final TrackedData<Integer> TARGET_FOOD_ENTITY_ID = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
@@ -258,6 +266,7 @@ public class RoachEntity extends PathAwareEntity {
 								 @Nullable EntityData entityData,
 								 @Nullable NbtCompound entityNbt) {
 		setSize(1 + random.nextInt(4));
+		setVariant(random.nextInt(4));
 		return super.initialize(world, difficulty, spawnReason, entityData, entityNbt);
 	}
 
@@ -271,6 +280,31 @@ public class RoachEntity extends PathAwareEntity {
 		this.refreshPosition();
 		this.calculateDimensions();
 		this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(5 + i);
+	}
+
+	public int getVariant() {
+		return (getRoachFlag(4) ? 1 : 0) + (getRoachFlag(5) ? 2 : 0);
+	}
+
+	public void setVariant(int variant) {
+		switch (variant) {
+			case 0 -> {
+				setRoachFlag(4, false);
+				setRoachFlag(5, false);
+			}
+			case 1 -> {
+				setRoachFlag(4, true);
+				setRoachFlag(5, false);
+			}
+			case 2 -> {
+				setRoachFlag(4, false);
+				setRoachFlag(5, true);
+			}
+			case 3 -> {
+				setRoachFlag(4, true);
+				setRoachFlag(5, true);
+			}
+		}
 	}
 
 	public void setDancing(boolean dancing, BlockPos trackedJukebox) {

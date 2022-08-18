@@ -26,6 +26,12 @@ import io.github.aelpecyem.la_cucaracha.RoachEntity;
 
 @Environment(EnvType.CLIENT)
 public class RoachEntityRenderer extends MobEntityRenderer<RoachEntity, RoachEntityModel> {
+	private final Identifier[] TEXTURE_VARIANTS = {
+		LaCucaracha.id("textures/entity/roach.png"),
+		LaCucaracha.id("textures/entity/roach.png"),
+		LaCucaracha.id("textures/entity/roach.png"),
+		LaCucaracha.id("textures/entity/roach.png")
+	};
 
 	public RoachEntityRenderer(Context context) {
 		super(context, new RoachEntityModel(context.getPart(RoachEntityModel.LAYER_LOCATION)), 0.5F);
@@ -52,7 +58,7 @@ public class RoachEntityRenderer extends MobEntityRenderer<RoachEntity, RoachEnt
 
 	@Override
 	public Identifier getTexture(RoachEntity entity) {
-		return LaCucaracha.id("textures/entity/roach.png");
+		return TEXTURE_VARIANTS[entity.getVariant()];
 	}
 
 	public static class RoachHeldItemFeatureRenderer extends FeatureRenderer<RoachEntity, RoachEntityModel> {
