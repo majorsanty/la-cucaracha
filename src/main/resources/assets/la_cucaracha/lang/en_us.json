@@ -2,5 +2,7 @@
   "entity.la_cucaracha.roach": "Roach",
   "item.la_cucaracha.bottled_roach": "Bottled Roach",
   "item.la_cucaracha.splash_bottled_roach": "Splash Bottled Roach",
-  "item.la_cucaracha.roach_spawn_egg": "Roach Spawn Egg"
+  "item.la_cucaracha.roach_spawn_egg": "Roach Spawn Egg",
+  "death.attack.roach": "%s got roached",
+  "death.attack.roach.item": "%s got roached"
 }

@@ -30,15 +30,18 @@ public class LaCucarachaClient implements ClientModInitializer {
 
 		ClientPlayNetworking.registerGlobalReceiver(LaCucaracha.PARTICLE_PACKET, (client, handler, buf, responseSender) -> {
 			Vec3d pos = new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+			boolean spawnGlass = buf.readBoolean();
 			World world = client.world;
 			if (world != null) {
 				client.execute(() -> {
 					for (int i = 0; i < 8; i++) {
-						client.world.addParticle(new ItemStackParticleEffect(ParticleTypes.ITEM, Items.SPLASH_POTION.getDefaultStack()),
-												 pos.getX(), pos.getY(), pos.getZ(),
-												 world.random.nextGaussian() * 0.1,
-												 world.random.nextGaussian() * 0.1,
-												 world.random.nextGaussian() * 0.1);
+						if (spawnGlass) {
+							client.world.addParticle(new ItemStackParticleEffect(ParticleTypes.ITEM, Items.SPLASH_POTION.getDefaultStack()),
+													 pos.getX(), pos.getY(), pos.getZ(),
+													 world.random.nextGaussian() * 0.1,
+													 world.random.nextGaussian() * 0.1,
+													 world.random.nextGaussian() * 0.1);
+						}
 						client.world.addParticle(LaCucaracha.ROACH_PARTICLE_EFFECT,
 												 pos.getX(), pos.getY(), pos.getZ(),
 												 world.random.nextGaussian() * 0.1,

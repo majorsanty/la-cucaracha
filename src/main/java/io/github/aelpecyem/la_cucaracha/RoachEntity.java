@@ -24,6 +24,7 @@ import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.attribute.DefaultAttributeContainer.Builder;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.damage.EntityDamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
@@ -48,6 +49,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.random.RandomGenerator;
 import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
@@ -66,12 +68,11 @@ import java.util.function.BiConsumer;
 import org.jetbrains.annotations.Nullable;
 
 public class RoachEntity extends PathAwareEntity {
-
-	private static final TrackedData<Integer> SIZE = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	/**
 	 * Roach Flags Indexes: 0 - Dancing 1 - Climbing 2 - Flying 3 - ??? 4,5 - Variant
 	 */
 	private static final TrackedData<Byte> ROACH_FLAGS = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.BYTE);
+	private static final TrackedData<Integer> SIZE = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final TrackedData<Integer> TARGET_FOOD_ENTITY_ID = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
 	private final DynamicGameEventListener<JukeboxListener> jukeboxListener;
@@ -90,6 +91,33 @@ public class RoachEntity extends PathAwareEntity {
 
 	public static Builder createRoachAttributes() {
 		return SilverfishEntity.createSilverfishAttributes();
+	}
+
+	public static void spawnRoaches(World world, @javax.annotation.Nullable LivingEntity target, Vec3d pos, RandomGenerator random, int amount, boolean summoned) {
+		for (int i = 0; i < amount; i++) {
+			RoachEntity roach = new RoachEntity(LaCucaracha.ROACH_ENTITY_TYPE, world);
+			roach.updatePositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), random.nextInt(360), 0);
+			roach.setVelocity(MathHelper.nextFloat(random, 0.07F, 0.1F),
+							  MathHelper.nextFloat(random, 0.3F, 0.5F),
+							  MathHelper.nextFloat(random, 0.07F, 0.1F));
+			roach.setSummoned(summoned);
+			roach.initialize((ServerWorldAccess) world, world.getLocalDifficulty(roach.getBlockPos()), SpawnReason.MOB_SUMMONED, null, null);
+
+			if (target != null) {
+				roach.setTarget(target);
+				roach.setSpecificTarget(target.getUuid());
+			}
+			world.spawnEntity(roach);
+		}
+	}
+
+	public DamageSource roachDamage() {
+		return new EntityDamageSource("roach", this) {
+			@Override
+			public boolean bypassesArmor() {
+				return true;
+			}
+		};
 	}
 
 	@Override
@@ -113,11 +141,14 @@ public class RoachEntity extends PathAwareEntity {
 		this.goalSelector.add(4, new PounceAtTargetGoal(this, 0.5F) {
 			@Override
 			public boolean canStart() {
-				return  hasWings && super.canStart();
+				return hasWings && super.canStart();
 			}
 
 			@Override
 			public void start() {
+				if (getTarget() == null) {
+					return;
+				}
 				Vec3d vec3d = getVelocity();
 				Vec3d vec3d2 = getTarget().getPos().add(0, 1.2, 0).subtract(getPos());
 				if (vec3d2.lengthSquared() > 1.0) {
@@ -156,7 +187,7 @@ public class RoachEntity extends PathAwareEntity {
 	@Override
 	public void tick() {
 		super.tick();
-		if (summoned && age > 300) {
+		if (summoned && age > 600) {
 			kill();
 		}
 		if (age % 20 == 0 && isDancing() && trackedJukebox != null) {
@@ -242,14 +273,9 @@ public class RoachEntity extends PathAwareEntity {
 				setFlying(!onGround);
 			}
 		}
-		if (isFlying() && getVelocity().getY() <- 0.05) {
+		if (isFlying() && getVelocity().getY() < -0.05) {
 			setVelocity(getVelocity().getX(), -0.05, getVelocity().getZ());
 		}
-	}
-
-	@Override
-	public void travel(Vec3d movementInput) {
-		super.travel(movementInput);
 	}
 
 	@Override
@@ -281,6 +307,20 @@ public class RoachEntity extends PathAwareEntity {
 		setVariant(random.nextInt(4));
 		hasWings = random.nextBoolean() && random.nextBoolean();
 		return super.initialize(world, difficulty, spawnReason, entityData, entityNbt);
+	}
+
+	@Override
+	public void applyDamageEffects(LivingEntity attacker, Entity target) {
+		super.applyDamageEffects(attacker, target);
+		target.damage(roachDamage(), 1.5F);
+	}
+
+	public boolean isFlying() {
+		return getRoachFlag(3);
+	}
+
+	public void setFlying(boolean flying) {
+		setRoachFlag(3, flying);
 	}
 
 	public int getSize() {
@@ -349,14 +389,6 @@ public class RoachEntity extends PathAwareEntity {
 		this.swarmMode = swarmMode;
 	}
 
-	public boolean isFlying() {
-		return getRoachFlag(3);
-	}
-
-	public void setFlying(boolean flying) {
-		setRoachFlag(3, flying);
-	}
-
 	public void setSpecificTarget(UUID specificTarget) {
 		this.specificTarget = specificTarget;
 	}
@@ -393,6 +425,7 @@ public class RoachEntity extends PathAwareEntity {
 			setTargetFoodEntityId(-1);
 			return true;
 		}
+		source.bypassesArmor();
 		return false;
 	}
 
