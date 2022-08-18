@@ -28,9 +28,9 @@ import io.github.aelpecyem.la_cucaracha.RoachEntity;
 public class RoachEntityRenderer extends MobEntityRenderer<RoachEntity, RoachEntityModel> {
 	private final Identifier[] TEXTURE_VARIANTS = {
 		LaCucaracha.id("textures/entity/roach.png"),
+		LaCucaracha.id("textures/entity/roach_2.png"),
 		LaCucaracha.id("textures/entity/roach.png"),
-		LaCucaracha.id("textures/entity/roach.png"),
-		LaCucaracha.id("textures/entity/roach.png")
+		LaCucaracha.id("textures/entity/roach_2.png")
 	};
 
 	public RoachEntityRenderer(Context context) {
