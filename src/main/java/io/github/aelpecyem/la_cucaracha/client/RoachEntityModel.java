@@ -1,6 +1,7 @@
 package io.github.aelpecyem.la_cucaracha.client;
 
 import net.minecraft.client.model.Dilation;
+import net.minecraft.client.model.Model;
 import net.minecraft.client.model.ModelData;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.model.ModelPartBuilder;
@@ -25,6 +26,7 @@ public class RoachEntityModel extends EntityModel<RoachEntity> {
 	private final ModelPart lAntenna;
 	private final ModelPart rLeg01, rLeg02, rLeg03;
 	private final ModelPart lLeg01, lLeg02, lLeg03;
+	private final ModelPart rWing, lWing;
 
 	public RoachEntityModel(ModelPart root) {
 		this.roach = root.getChild("roach");
@@ -38,6 +40,8 @@ public class RoachEntityModel extends EntityModel<RoachEntity> {
 		this.lLeg01 = thorax.getChild("lLeg01");
 		this.lLeg02 = thorax.getChild("lLeg02");
 		this.lLeg03 = thorax.getChild("lLeg03");
+		this.rWing = thorax.getChild("rWing");
+		this.lWing = thorax.getChild("lWing");
 	}
 
 	public static TexturedModelData createTexturedModelData() {
@@ -87,21 +91,41 @@ public class RoachEntityModel extends EntityModel<RoachEntity> {
 			rAntenna.yaw = 0;
 			lAntenna.yaw = 0;
 		}
-		float cycle = dancing ? 0 : (MathHelper.cos(limbAngle * 0.6662F * 2.0F)) * 0.4F * limbDistance;
-		rLeg01.yaw = -0.6545F - cycle;
-		lLeg01.yaw = 0.6545F - cycle;
-		rLeg02.yaw = cycle;
-		lLeg02.yaw = cycle;
-		lLeg03.yaw = -1.2217F - cycle * 2;
-		rLeg03.yaw = 1.2217F - cycle * 2;
 		if (dancing) {
 			roach.yaw = animationProgress * (entity.getId() % 2 == 0 ? 0.2F : -0.2F);
 			roach.pitch = -MathHelper.PI * 0.25F;
 			roach.pivotY = 16 + MathHelper.sin(animationProgress * 0.75F) * 2;
+			rLeg01.yaw = -0.6545F;
+			lLeg01.yaw = 0.6545F;
+			rLeg02.yaw = 0;
+			lLeg02.yaw = 0;
+			lLeg03.yaw = -1.2217F;
+			rLeg03.yaw = 1.2217F;
 		} else {
+			float cycle = (MathHelper.cos(limbAngle * 0.6662F * 2.0F)) * 0.4F * limbDistance;
 			roach.yaw = 0;
 			roach.pitch = 0;
 			roach.pivotY = 22;
+			rLeg01.yaw = -0.6545F - cycle;
+			lLeg01.yaw = 0.6545F - cycle;
+			rLeg02.yaw = cycle;
+			lLeg02.yaw = cycle;
+			lLeg03.yaw = -1.2217F - cycle * 2;
+			rLeg03.yaw = 1.2217F - cycle * 2;
+
+			if (entity.isFlying()) {
+				rWing.pitch = 0.0436F + (1 + MathHelper.cos(animationProgress * 2)) * 0.35F;
+				rWing.yaw = -0.0436F - MathHelper.PI * 0.35F;
+
+				lWing.pitch = 0.0436F + (1 + MathHelper.cos(animationProgress * 2)) * 0.35F;
+				lWing.yaw = 0.0436F + MathHelper.PI * 0.35F;
+			} else {
+				rWing.pitch = 0.0436F;
+				rWing.yaw = -0.0436F;
+
+				lWing.pitch = 0.0436F;
+				lWing.yaw = 0.0436F;
+			}
 		}
 	}
 
