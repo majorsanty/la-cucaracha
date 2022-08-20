@@ -11,6 +11,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.ai.FuzzyTargeting;
 import net.minecraft.entity.ai.NoPenaltyTargeting;
 import net.minecraft.entity.ai.goal.EscapeDangerGoal;
 import net.minecraft.entity.ai.goal.Goal;
@@ -33,6 +34,9 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.SilverfishEntity;
+import net.minecraft.entity.passive.CatEntity;
+import net.minecraft.entity.passive.FrogEntity;
+import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsage;
@@ -89,6 +93,11 @@ public class RoachEntity extends PathAwareEntity {
 		getNavigation().setRangeMultiplier(0.1F);
 	}
 
+	@Override
+	public float getPathfindingFavor(BlockPos pos) {
+	return Math.max(1 - world.getLightLevel(pos) / 16F, 0.5F);
+	}
+
 	public static Builder createRoachAttributes() {
 		return SilverfishEntity.createSilverfishAttributes();
 	}
@@ -134,7 +143,7 @@ public class RoachEntity extends PathAwareEntity {
 			@Nullable
 			@Override
 			protected Vec3d getWanderTarget() {
-				return NoPenaltyTargeting.find(this.mob, 3, 1);
+				return FuzzyTargeting.find(this.mob, 3, 1);
 			}
 		});
 		this.goalSelector.add(3, new GroupTogetherGoal());
@@ -159,7 +168,7 @@ public class RoachEntity extends PathAwareEntity {
 			}
 		});
 		this.goalSelector.add(5, new MeleeAttackGoal(this, 1.5, false));
-		this.targetSelector.add(1, new RevengeGoal(this) {
+		this.targetSelector.add(1, new RevengeGoal(this, CatEntity.class, FrogEntity.class, VillagerEntity.class) {
 			@Override
 			public boolean canStart() {
 				return isAggressive() && super.canStart();
@@ -167,7 +176,7 @@ public class RoachEntity extends PathAwareEntity {
 		}.setGroupRevenge());
 		this.targetSelector.add(2, new TargetGoal<>(this, LivingEntity.class, true, target ->
 			!(target instanceof RoachEntity) &&
-				((specificTarget != null && target.getUuid().equals(specificTarget)) || target.isHolding(ItemStack::isFood))) {
+				((specificTarget != null && target.getUuid().equals(specificTarget)) || (target instanceof PlayerEntity && target.isHolding(ItemStack::isFood)))) {
 			@Override
 			public boolean canStart() {
 				return isAggressive() && super.canStart();
