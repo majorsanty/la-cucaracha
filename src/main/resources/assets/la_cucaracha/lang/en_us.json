@@ -4,5 +4,11 @@
   "item.la_cucaracha.splash_bottled_roach": "Splash Bottled Roach",
   "item.la_cucaracha.roach_spawn_egg": "Roach Spawn Egg",
   "death.attack.roach": "%s got roached",
-  "death.attack.roach.item": "%s got roached"
+  "death.attack.roach.item": "%s got roached",
+
+  "la_cucaracha.midnightconfig.title": "La Cucaracha Config",
+  "la_cucaracha.midnightconfig.roachSpawnIntervalStructures": "Roach Spawn Interval (Structures)",
+  "la_cucaracha.midnightconfig.roachSpawnIntervalFood": "Roach Spawn Interval (Food)",
+  "la_cucaracha.midnightconfig.roachMaxGroupSize": "Naturally Spawned Roach Group Limit",
+  "la_cucaracha.midnightconfig.roachAggressionGroupSize": "Roach Swarm Mode Group Size"
 }

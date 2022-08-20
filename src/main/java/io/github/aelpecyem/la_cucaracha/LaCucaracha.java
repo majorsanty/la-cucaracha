@@ -83,6 +83,7 @@ public class LaCucaracha implements ModInitializer {
 
 	@Override
 	public void onInitialize(ModContainer mod) {
+		LaCucarachaConfig.init(MOD_ID, LaCucarachaConfig.class);
 		Registry.register(Registry.ENTITY_TYPE, id("roach"), ROACH_ENTITY_TYPE);
 		FabricDefaultAttributeRegistry.register(ROACH_ENTITY_TYPE, RoachEntity.createRoachAttributes());
 		Registry.register(Registry.ENTITY_TYPE, id("splash_bottled_roach"), SPLASH_BOTTLED_ROACH_ENTITY_TYPE);

@@ -20,36 +20,50 @@ import net.minecraft.world.poi.PointOfInterestTypes;
 import java.util.List;
 
 public class RoachSpawner implements Spawner {
+
 	public static final int SPAWN_RADIUS = 64;
 	public static final int ITEM_SPAWN_RADIUS = 16;
-	private int ticksUntilNextSpawn;
+	private int ticksUntilNextFoodSpawn;
+	private int ticksUntilNextStructureSpawn;
 
 
 	public int spawn(ServerWorld world, boolean spawnMonsters, boolean spawnAnimals) {
 		if (spawnAnimals && world.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING)) {
-			--this.ticksUntilNextSpawn;
-			if (this.ticksUntilNextSpawn <= 0) {
-				this.ticksUntilNextSpawn = 100;
+			--this.ticksUntilNextFoodSpawn;
+			--this.ticksUntilNextStructureSpawn;
+			if (this.ticksUntilNextFoodSpawn <= 0) {
+				this.ticksUntilNextFoodSpawn = LaCucarachaConfig.roachSpawnIntervalFood;
 				RandomGenerator random = world.random;
 				world.getPlayers().forEach(serverPlayerEntity -> {
-					boolean fromFood = random.nextBoolean();
-					int x = (8 + random.nextInt(fromFood ? 12 : 32)) * (random.nextBoolean() ? -1 : 1);
-					int y = (random.nextInt(4)) * (random.nextBoolean() ? -1 : 1);
-					int z = (8 + random.nextInt(fromFood ? 12 : 32)) * (random.nextBoolean() ? -1 : 1);
-					BlockPos blockPos = serverPlayerEntity.getBlockPos().add(x, y, z);
+					BlockPos blockPos = getRandomSpawnPos(random, serverPlayerEntity, true);
 
 					if (RoachEntity.canMobSpawn(LaCucaracha.ROACH_ENTITY_TYPE, world, SpawnReason.NATURAL, blockPos, world.getRandom())) {
-						if (fromFood) {
-							spawnFromFood(world, blockPos);
-						} else {
-							spawnFromStructure(world, blockPos);
-						}
+						spawnFromFood(world, blockPos);
+					}
+				});
+			}
+			if (this.ticksUntilNextStructureSpawn <= 0) {
+				this.ticksUntilNextStructureSpawn = LaCucarachaConfig.roachSpawnIntervalStructures;
+				RandomGenerator random = world.random;
+				world.getPlayers().forEach(serverPlayerEntity -> {
+					BlockPos blockPos = getRandomSpawnPos(random, serverPlayerEntity, false);
+
+					if (RoachEntity.canMobSpawn(LaCucaracha.ROACH_ENTITY_TYPE, world, SpawnReason.NATURAL, blockPos, world.getRandom())) {
+						spawnFromStructure(world, blockPos);
 					}
 				});
 			}
 		}
 
 		return 0;
+	}
+
+	private BlockPos getRandomSpawnPos(RandomGenerator random, net.minecraft.server.network.ServerPlayerEntity serverPlayerEntity, boolean fromFood) {
+		int x = (8 + random.nextInt(fromFood ? 12 : 32)) * (random.nextBoolean() ? -1 : 1);
+		int y = (random.nextInt(4)) * (random.nextBoolean() ? -1 : 1);
+		int z = (8 + random.nextInt(fromFood ? 12 : 32)) * (random.nextBoolean() ? -1 : 1);
+		BlockPos blockPos = serverPlayerEntity.getBlockPos().add(x, y, z);
+		return blockPos;
 	}
 
 	private void spawnFromFood(ServerWorld world, BlockPos blockPos) {
@@ -59,12 +73,29 @@ public class RoachSpawner implements Spawner {
 																						 blockPos.getX() + ITEM_SPAWN_RADIUS,
 																						 blockPos.getY() + ITEM_SPAWN_RADIUS,
 																						 blockPos.getZ() + ITEM_SPAWN_RADIUS),
-								item -> item.getStack().isFood() && item.isOnGround()).size();
+										item -> item.getStack().isFood() && item.isOnGround()).size();
 		if (i > 0) {
 			if (SpawnHelper.canSpawn(SpawnRestriction.Location.ON_GROUND, world, blockPos, LaCucaracha.ROACH_ENTITY_TYPE)) {
 				this.spawn(blockPos, world);
 			}
 		}
+	}
+
+	private int spawn(BlockPos pos, ServerWorld world) {
+		int amount = 1 + world.random.nextInt(LaCucarachaConfig.roachMaxGroupSize);
+		int i = 0;
+		while (i < amount) {
+			RoachEntity roach = LaCucaracha.ROACH_ENTITY_TYPE.create(world);
+			if (roach == null) {
+				break;
+			} else {
+				roach.initialize(world, world.getLocalDifficulty(pos), SpawnReason.NATURAL, null, null);
+				roach.refreshPositionAndAngles(pos, 0.0F, 0.0F);
+				world.spawnEntityAndPassengers(roach);
+				i++;
+			}
+		}
+		return i;
 	}
 
 	private void spawnFromStructure(ServerWorld world, BlockPos blockPos) {
@@ -109,22 +140,5 @@ public class RoachSpawner implements Spawner {
 		}
 
 		return 0;
-	}
-
-	private int spawn(BlockPos pos, ServerWorld world) {
-		int amount = 1 + world.random.nextInt(2);
-		int i = 0;
-		while (i < amount) {
-			RoachEntity roach = LaCucaracha.ROACH_ENTITY_TYPE.create(world);
-			if (roach == null) {
-				break;
-			} else {
-				roach.initialize(world, world.getLocalDifficulty(pos), SpawnReason.NATURAL, null, null);
-				roach.refreshPositionAndAngles(pos, 0.0F, 0.0F);
-				world.spawnEntityAndPassengers(roach);
-				i++;
-			}
-		}
-		return i;
 	}
 }

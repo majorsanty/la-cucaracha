@@ -293,7 +293,7 @@ public class RoachEntity extends PathAwareEntity {
 		if (age % 40 == 0) {
 			List<Entity> roaches = world.getOtherEntities(this, getBoundingBox().expand(8), entity -> entity instanceof RoachEntity);
 			if (age % 40 < 20) {
-				this.setSwarmMode(roaches.size() >= 2);
+				this.setSwarmMode(roaches.size() >= (LaCucarachaConfig.roachAggressionGroupSize + 1));
 			} else {
 				if (!isSwarmMode()) {
 					for (Entity entity : roaches) {
