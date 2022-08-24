@@ -497,7 +497,9 @@ public class RoachEntity extends PathAwareEntity {
 	@Override
 	public void onPlayerCollision(PlayerEntity player) {
 		super.onPlayerCollision(player);
-		player.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 60, 0));
+		if (!world.isClient) {
+			player.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 60, 0));
+		}
 	}
 
 	@Override
