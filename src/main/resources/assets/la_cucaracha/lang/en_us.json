@@ -5,7 +5,9 @@
   "item.la_cucaracha.roach_spawn_egg": "Roach Spawn Egg",
   "death.attack.roach": "%s got roached",
   "death.attack.roach.item": "%s got roached",
-
+  "subtitles.la_cucaracha.roach.scurry": "Roach scurries",
+  "subtitles.la_cucaracha.roach.hurt": "Roach hurts",
+  "subtitles.la_cucaracha.roach.death": "Roach dies",
   "la_cucaracha.midnightconfig.title": "La Cucaracha Config",
   "la_cucaracha.midnightconfig.roachSpawnIntervalStructures": "Roach Spawn Interval (Structures)",
   "la_cucaracha.midnightconfig.roachSpawnIntervalFood": "Roach Spawn Interval (Food)",
