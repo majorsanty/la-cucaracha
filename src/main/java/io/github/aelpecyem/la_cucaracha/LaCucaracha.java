@@ -99,12 +99,14 @@ public class LaCucaracha implements ModInitializer {
 			roachSpawner.spawn(world, world.getDifficulty() != Difficulty.PEACEFUL, server.shouldSpawnAnimals());
 		});
 		ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register((world, entity, killedEntity) -> {
-			RandomGenerator random = killedEntity.getRandom();
-			if (killedEntity.getType().isIn(ROACH_CARRIERS) && random.nextInt(8) == 0) {
-				RoachEntity.spawnRoaches(world, entity instanceof LivingEntity l ? l : null,
-										 killedEntity.getPos().add(0, killedEntity.getHeight() / 2, 0),
-										 random, 1 + random.nextInt(3), false);
-				sendRoachPotionPacket(world, killedEntity.getPos().add(0, killedEntity.getHeight() / 2, 0));
+			if (LaCucarachaConfig.roachSpawnEnabledCarriers) {
+				RandomGenerator random = killedEntity.getRandom();
+				if (killedEntity.getType().isIn(ROACH_CARRIERS) && random.nextInt(8) == 0) {
+					RoachEntity.spawnRoaches(world, entity instanceof LivingEntity l ? l : null,
+							killedEntity.getPos().add(0, killedEntity.getHeight() / 2, 0),
+							random, 1 + random.nextInt(3), false);
+					sendRoachPotionPacket(world, killedEntity.getPos().add(0, killedEntity.getHeight() / 2, 0));
+				}
 			}
 		});
 	}
