@@ -29,29 +29,34 @@ public class RoachSpawner implements Spawner {
 
 	public int spawn(ServerWorld world, boolean spawnMonsters, boolean spawnAnimals) {
 		if (spawnAnimals && world.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING)) {
-			--this.ticksUntilNextFoodSpawn;
-			--this.ticksUntilNextStructureSpawn;
-			if (this.ticksUntilNextFoodSpawn <= 0) {
-				this.ticksUntilNextFoodSpawn = LaCucarachaConfig.roachSpawnIntervalFood;
-				RandomGenerator random = world.random;
-				world.getPlayers().forEach(serverPlayerEntity -> {
-					BlockPos blockPos = getRandomSpawnPos(random, serverPlayerEntity, true);
+			if (LaCucarachaConfig.roachSpawnEnabledFood) {
+				--this.ticksUntilNextFoodSpawn;
+				if (this.ticksUntilNextFoodSpawn <= 0) {
+					this.ticksUntilNextFoodSpawn = LaCucarachaConfig.roachSpawnIntervalFood;
+					RandomGenerator random = world.random;
+					world.getPlayers().forEach(serverPlayerEntity -> {
+						BlockPos blockPos = getRandomSpawnPos(random, serverPlayerEntity, true);
 
-					if (RoachEntity.canMobSpawn(LaCucaracha.ROACH_ENTITY_TYPE, world, SpawnReason.NATURAL, blockPos, world.getRandom())) {
-						spawnFromFood(world, blockPos);
-					}
-				});
+						if (RoachEntity.canMobSpawn(LaCucaracha.ROACH_ENTITY_TYPE, world, SpawnReason.NATURAL, blockPos, world.getRandom())) {
+							spawnFromFood(world, blockPos);
+						}
+					});
+				}
 			}
-			if (this.ticksUntilNextStructureSpawn <= 0) {
-				this.ticksUntilNextStructureSpawn = LaCucarachaConfig.roachSpawnIntervalStructures;
-				RandomGenerator random = world.random;
-				world.getPlayers().forEach(serverPlayerEntity -> {
-					BlockPos blockPos = getRandomSpawnPos(random, serverPlayerEntity, false);
 
-					if (RoachEntity.canMobSpawn(LaCucaracha.ROACH_ENTITY_TYPE, world, SpawnReason.NATURAL, blockPos, world.getRandom())) {
-						spawnFromStructure(world, blockPos);
-					}
-				});
+			if (LaCucarachaConfig.roachSpawnEnabledStructures) {
+				--this.ticksUntilNextStructureSpawn;
+				if (this.ticksUntilNextStructureSpawn <= 0) {
+					this.ticksUntilNextStructureSpawn = LaCucarachaConfig.roachSpawnIntervalStructures;
+					RandomGenerator random = world.random;
+					world.getPlayers().forEach(serverPlayerEntity -> {
+						BlockPos blockPos = getRandomSpawnPos(random, serverPlayerEntity, false);
+
+						if (RoachEntity.canMobSpawn(LaCucaracha.ROACH_ENTITY_TYPE, world, SpawnReason.NATURAL, blockPos, world.getRandom())) {
+							spawnFromStructure(world, blockPos);
+						}
+					});
+				}
 			}
 		}
 
