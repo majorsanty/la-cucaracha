@@ -1,10 +1,14 @@
 package io.github.aelpecyem.la_cucaracha;
 
+import io.netty.buffer.Unpooled;
+import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents.AfterKilledOtherEntity;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EntityType.EntityFactory;
@@ -21,18 +25,10 @@ import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.random.RandomGenerator;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.gen.feature.StructureFeature;
-
-import io.netty.buffer.Unpooled;
-import org.quiltmc.loader.api.ModContainer;
-import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
-import org.quiltmc.qsl.item.setting.api.QuiltItemSettings;
-import org.quiltmc.qsl.lifecycle.api.event.ServerWorldTickEvents;
-import org.quiltmc.qsl.networking.api.PlayerLookup;
-import org.quiltmc.qsl.networking.api.ServerPlayNetworking;
+import net.minecraft.world.gen.structure.Structure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +37,7 @@ public class LaCucaracha implements ModInitializer {
 	public static final String MOD_ID = "la_cucaracha";
 	public static final Logger LOGGER = LoggerFactory.getLogger("La Cucaracha");
 
-	public static final TagKey<StructureFeature> ROACH_STRUCTURES = TagKey.of(Registry.STRUCTURE_WORLDGEN, id("roach_structure"));
+	public static final TagKey<Structure> ROACH_STRUCTURES = TagKey.of(Registry.STRUCTURE_KEY, id("roach_structure"));
 	public static final TagKey<EntityType<?>> ROACH_CARRIERS = TagKey.of(Registry.ENTITY_TYPE_KEY, id("roach_carriers"));
 
 	public static final Identifier PARTICLE_PACKET = id("roach_potion");
@@ -54,7 +50,7 @@ public class LaCucaracha implements ModInitializer {
 	public static final Item BOTTLED_ROACH_ITEM = new BottledRoachItem();
 	public static final Item SPLASH_POTION_ROACH_ITEM = new SplashBottledRoachItem();
 	public static final Item ROACH_SPAWN_EGG_ITEM = new SpawnEggItem(ROACH_ENTITY_TYPE, 0x3d2a0f, 0x42392c,
-																	 new QuiltItemSettings().group(ItemGroup.MISC));
+																	 new FabricItemSettings().group(ItemGroup.MISC));
 	public static final SoundEvent ROACH_SCURRY_SOUND_EVENT = new SoundEvent(id("roach.scurry"));
 	public static final SoundEvent ROACH_HURT_SOUND_EVENT = new SoundEvent(id("roach.hurt"));
 	public static final SoundEvent ROACH_DEATH_SOUND_EVENT = new SoundEvent(id("roach.death"));
@@ -82,7 +78,7 @@ public class LaCucaracha implements ModInitializer {
 	}
 
 	@Override
-	public void onInitialize(ModContainer mod) {
+	public void onInitialize() {
 		LaCucarachaConfig.init(MOD_ID, LaCucarachaConfig.class);
 		Registry.register(Registry.ENTITY_TYPE, id("roach"), ROACH_ENTITY_TYPE);
 		FabricDefaultAttributeRegistry.register(ROACH_ENTITY_TYPE, RoachEntity.createRoachAttributes());
@@ -95,12 +91,12 @@ public class LaCucaracha implements ModInitializer {
 		Registry.register(Registry.SOUND_EVENT, id("roach.death"), ROACH_DEATH_SOUND_EVENT);
 		Registry.register(Registry.PARTICLE_TYPE, id("roaches"), ROACH_PARTICLE_EFFECT);
 		RoachSpawner roachSpawner = new RoachSpawner();
-		ServerWorldTickEvents.END.register((server, world) -> {
-			roachSpawner.spawn(world, world.getDifficulty() != Difficulty.PEACEFUL, server.shouldSpawnAnimals());
-		});
+		ServerTickEvents.END_WORLD_TICK.register(world ->
+			roachSpawner.spawn(world, world.getDifficulty() != Difficulty.PEACEFUL,
+				world.getServer().shouldSpawnAnimals()));
 		ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register((world, entity, killedEntity) -> {
 			if (LaCucarachaConfig.roachSpawnEnabledCarriers) {
-				RandomGenerator random = killedEntity.getRandom();
+				Random random = killedEntity.getRandom();
 				if (killedEntity.getType().isIn(ROACH_CARRIERS) && random.nextInt(8) == 0) {
 					RoachEntity.spawnRoaches(world, entity instanceof LivingEntity l ? l : null,
 							killedEntity.getPos().add(0, killedEntity.getHeight() / 2, 0),

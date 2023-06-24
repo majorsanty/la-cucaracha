@@ -12,13 +12,12 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.FuzzyTargeting;
-import net.minecraft.entity.ai.NoPenaltyTargeting;
+import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.ai.goal.EscapeDangerGoal;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.ai.goal.PounceAtTargetGoal;
 import net.minecraft.entity.ai.goal.RevengeGoal;
-import net.minecraft.entity.ai.goal.TargetGoal;
 import net.minecraft.entity.ai.goal.WanderAroundGoal;
 import net.minecraft.entity.ai.pathing.MobNavigation;
 import net.minecraft.entity.ai.pathing.Path;
@@ -29,7 +28,6 @@ import net.minecraft.entity.damage.EntityDamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.PathAwareEntity;
@@ -53,23 +51,22 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.random.RandomGenerator;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.event.EntityPositionSource;
 import net.minecraft.world.event.GameEvent;
 import net.minecraft.world.event.PositionSource;
-import net.minecraft.world.event.listener.DynamicGameEventListener;
+import net.minecraft.world.event.listener.EntityGameEventHandler;
 import net.minecraft.world.event.listener.GameEventListener;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiConsumer;
-
-import org.jetbrains.annotations.Nullable;
 
 public class RoachEntity extends PathAwareEntity {
 	/**
@@ -79,7 +76,7 @@ public class RoachEntity extends PathAwareEntity {
 	private static final TrackedData<Integer> SIZE = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final TrackedData<Integer> TARGET_FOOD_ENTITY_ID = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
-	private final DynamicGameEventListener<JukeboxListener> jukeboxListener;
+	private final EntityGameEventHandler<JukeboxListener> jukeboxListener;
 	private boolean swarmMode, summoned, hasWings = false;
 	private UUID specificTarget;
 	private BlockPos trackedJukebox;
@@ -88,7 +85,7 @@ public class RoachEntity extends PathAwareEntity {
 	protected RoachEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
 		super(entityType, world);
 		PositionSource positionSource = new EntityPositionSource(this, this.getStandingEyeHeight());
-		this.jukeboxListener = new DynamicGameEventListener<>(new JukeboxListener(positionSource, GameEvent.JUKEBOX_PLAY.getRange()));
+		this.jukeboxListener = new EntityGameEventHandler<>(new JukeboxListener(positionSource, GameEvent.JUKEBOX_PLAY.getRange()));
 		((MobNavigation) getNavigation()).setAvoidSunlight(true);
 		getNavigation().setRangeMultiplier(0.1F);
 	}
@@ -102,7 +99,7 @@ public class RoachEntity extends PathAwareEntity {
 		return SilverfishEntity.createSilverfishAttributes();
 	}
 
-	public static void spawnRoaches(World world, @javax.annotation.Nullable LivingEntity target, Vec3d pos, RandomGenerator random, int amount, boolean summoned) {
+	public static void spawnRoaches(World world, @Nullable LivingEntity target, Vec3d pos, Random random, int amount, boolean summoned) {
 		for (int i = 0; i < amount; i++) {
 			RoachEntity roach = new RoachEntity(LaCucaracha.ROACH_ENTITY_TYPE, world);
 			roach.updatePositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), random.nextInt(360), 0);
@@ -174,7 +171,7 @@ public class RoachEntity extends PathAwareEntity {
 				return isAggressive() && super.canStart();
 			}
 		}.setGroupRevenge());
-		this.targetSelector.add(2, new TargetGoal<>(this, LivingEntity.class, true, target ->
+		this.targetSelector.add(2, new ActiveTargetGoal<>(this, LivingEntity.class, true, target ->
 			!(target instanceof RoachEntity) &&
 				((specificTarget != null && target.getUuid().equals(specificTarget)) || (target instanceof PlayerEntity && target.isHolding(ItemStack::isFood)))) {
 			@Override
@@ -503,10 +500,10 @@ public class RoachEntity extends PathAwareEntity {
 	}
 
 	@Override
-	public void updateDynamicGameEventListener(BiConsumer<DynamicGameEventListener<?>, ServerWorld> updater) {
-		super.updateDynamicGameEventListener(updater);
+	public void updateEventHandler(BiConsumer<EntityGameEventHandler<?>, ServerWorld> callback) {
+		super.updateEventHandler(callback);
 		if (world instanceof ServerWorld serverWorld) {
-			updater.accept(this.jukeboxListener, serverWorld);
+			callback.accept(this.jukeboxListener, serverWorld);
 		}
 	}
 
@@ -669,10 +666,10 @@ public class RoachEntity extends PathAwareEntity {
 		@Override
 		public boolean listen(ServerWorld world, GameEvent.Message eventMessage) {
 			if (eventMessage.getEvent() == GameEvent.JUKEBOX_PLAY && (lastAttackedTicks > 100 || lastAttackedTicks <= 0)) {
-				RoachEntity.this.setDancing(true, new BlockPos(eventMessage.getSourcePos()));
+				RoachEntity.this.setDancing(true, new BlockPos(eventMessage.getEmitterPos()));
 				return true;
 			} else if (eventMessage.getEvent() == GameEvent.JUKEBOX_STOP_PLAY) {
-				RoachEntity.this.setDancing(false, new BlockPos(eventMessage.getSourcePos()));
+				RoachEntity.this.setDancing(false, new BlockPos(eventMessage.getEmitterPos()));
 				return true;
 			} else {
 				return false;
