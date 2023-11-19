@@ -1,5 +1,6 @@
 package io.github.aelpecyem.la_cucaracha;
 
+import io.github.aelpecyem.la_cucaracha.items.BottledRoachItem;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.JukeboxBlock;
@@ -12,24 +13,21 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.FuzzyTargeting;
-import net.minecraft.entity.ai.NoPenaltyTargeting;
+import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.ai.goal.EscapeDangerGoal;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.ai.goal.PounceAtTargetGoal;
 import net.minecraft.entity.ai.goal.RevengeGoal;
-import net.minecraft.entity.ai.goal.TargetGoal;
 import net.minecraft.entity.ai.goal.WanderAroundGoal;
 import net.minecraft.entity.ai.pathing.MobNavigation;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.attribute.DefaultAttributeContainer.Builder;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.EntityDamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.PathAwareEntity;
@@ -53,23 +51,22 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.random.RandomGenerator;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.event.EntityPositionSource;
 import net.minecraft.world.event.GameEvent;
 import net.minecraft.world.event.PositionSource;
-import net.minecraft.world.event.listener.DynamicGameEventListener;
+import net.minecraft.world.event.listener.EntityGameEventHandler;
 import net.minecraft.world.event.listener.GameEventListener;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiConsumer;
-
-import org.jetbrains.annotations.Nullable;
 
 public class RoachEntity extends PathAwareEntity {
 	/**
@@ -79,7 +76,7 @@ public class RoachEntity extends PathAwareEntity {
 	private static final TrackedData<Integer> SIZE = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final TrackedData<Integer> TARGET_FOOD_ENTITY_ID = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
-	private final DynamicGameEventListener<JukeboxListener> jukeboxListener;
+	private final EntityGameEventHandler<JukeboxListener> jukeboxListener;
 	private boolean swarmMode, summoned, hasWings = false;
 	private UUID specificTarget;
 	private BlockPos trackedJukebox;
@@ -88,21 +85,21 @@ public class RoachEntity extends PathAwareEntity {
 	protected RoachEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
 		super(entityType, world);
 		PositionSource positionSource = new EntityPositionSource(this, this.getStandingEyeHeight());
-		this.jukeboxListener = new DynamicGameEventListener<>(new JukeboxListener(positionSource, GameEvent.JUKEBOX_PLAY.getRange()));
+		this.jukeboxListener = new EntityGameEventHandler<>(new JukeboxListener(positionSource, GameEvent.JUKEBOX_PLAY.getRange()));
 		((MobNavigation) getNavigation()).setAvoidSunlight(true);
 		getNavigation().setRangeMultiplier(0.1F);
 	}
 
 	@Override
 	public float getPathfindingFavor(BlockPos pos) {
-	return Math.max(1 - world.getLightLevel(pos) / 16F, 0.5F);
+	return Math.max(1 - getWorld().getLightLevel(pos) / 16F, 0.5F);
 	}
 
 	public static Builder createRoachAttributes() {
 		return SilverfishEntity.createSilverfishAttributes();
 	}
 
-	public static void spawnRoaches(World world, @javax.annotation.Nullable LivingEntity target, Vec3d pos, RandomGenerator random, int amount, boolean summoned) {
+	public static void spawnRoaches(World world, @Nullable LivingEntity target, Vec3d pos, Random random, int amount, boolean summoned) {
 		for (int i = 0; i < amount; i++) {
 			RoachEntity roach = new RoachEntity(LaCucaracha.ROACH_ENTITY_TYPE, world);
 			roach.updatePositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), random.nextInt(360), 0);
@@ -118,15 +115,6 @@ public class RoachEntity extends PathAwareEntity {
 			}
 			world.spawnEntity(roach);
 		}
-	}
-
-	public DamageSource roachDamage() {
-		return new EntityDamageSource("roach", this) {
-			@Override
-			public boolean bypassesArmor() {
-				return true;
-			}
-		};
 	}
 
 	@Override
@@ -174,7 +162,7 @@ public class RoachEntity extends PathAwareEntity {
 				return isAggressive() && super.canStart();
 			}
 		}.setGroupRevenge());
-		this.targetSelector.add(2, new TargetGoal<>(this, LivingEntity.class, true, target ->
+		this.targetSelector.add(2, new ActiveTargetGoal<>(this, LivingEntity.class, true, target ->
 			!(target instanceof RoachEntity) &&
 				((specificTarget != null && target.getUuid().equals(specificTarget)) || (target instanceof PlayerEntity && target.isHolding(ItemStack::isFood)))) {
 			@Override
@@ -200,8 +188,8 @@ public class RoachEntity extends PathAwareEntity {
 			kill();
 		}
 		if (age % 20 == 0 && isDancing() && trackedJukebox != null) {
-			if (!(world.getBlockState(trackedJukebox).isOf(Blocks.JUKEBOX)
-				&& world.getBlockState(trackedJukebox).get(JukeboxBlock.HAS_RECORD)
+			if (!(getWorld().getBlockState(trackedJukebox).isOf(Blocks.JUKEBOX)
+				&& getWorld().getBlockState(trackedJukebox).get(JukeboxBlock.HAS_RECORD)
 				&& trackedJukebox.isWithinDistance(getBlockPos(), GameEvent.JUKEBOX_PLAY.getRange()))) {
 				setDancing(false, null);
 			}
@@ -219,8 +207,8 @@ public class RoachEntity extends PathAwareEntity {
 			} else {
 				ItemStack stack = getMainHandStack();
 				if (stack.isFood()) {
-					if (world.isClient) {
-						world.addParticle(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), getX(), getY(), getZ(),
+					if (getWorld().isClient) {
+						getWorld().addParticle(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), getX(), getY(), getZ(),
 										  random.nextGaussian() * 0.1, random.nextFloat() * 0.1, random.nextGaussian() * 0.1);
 					} else {
 						eatingTicks++;
@@ -232,7 +220,7 @@ public class RoachEntity extends PathAwareEntity {
 									dropItem(stack.getItem().getRecipeRemainder());
 								}
 								heal(stack.getItem().getFoodComponent().getHunger());
-								eatFood(world, stack);
+								eatFood(getWorld(), stack);
 								eatingTicks = -10;
 							}
 						}
@@ -276,10 +264,10 @@ public class RoachEntity extends PathAwareEntity {
 	@Override
 	public void tickMovement() {
 		super.tickMovement();
-		if (!world.isClient) {
+		if (!getWorld().isClient) {
 			setRoachClimbing(horizontalCollision);
 			if (hasWings) {
-				setFlying(!onGround);
+				setFlying(!isOnGround());
 			}
 		}
 		if (isFlying() && getVelocity().getY() < -0.05) {
@@ -291,7 +279,7 @@ public class RoachEntity extends PathAwareEntity {
 	protected void mobTick() {
 		super.mobTick();
 		if (age % 40 == 0) {
-			List<Entity> roaches = world.getOtherEntities(this, getBoundingBox().expand(8), entity -> entity instanceof RoachEntity);
+			List<Entity> roaches = getWorld().getOtherEntities(this, getBoundingBox().expand(8), entity -> entity instanceof RoachEntity);
 			if (age % 40 < 20) {
 				this.setSwarmMode(roaches.size() >= (LaCucarachaConfig.roachAggressionGroupSize + 1));
 			} else {
@@ -321,7 +309,8 @@ public class RoachEntity extends PathAwareEntity {
 	@Override
 	public void applyDamageEffects(LivingEntity attacker, Entity target) {
 		super.applyDamageEffects(attacker, target);
-		target.damage(roachDamage(), 1.5F);
+		float dmg = 1 + 0.75F*getSize();
+		target.damage(LaCucaracha.create(LaCucaracha.ROACH, getWorld()), dmg);
 	}
 
 	public boolean isFlying() {
@@ -375,7 +364,7 @@ public class RoachEntity extends PathAwareEntity {
 	}
 
 	public Entity getTargetFoodEntity() {
-		return world.getEntityById(getTargetFoodEntityId());
+		return getWorld().getEntityById(getTargetFoodEntityId());
 	}
 
 	public boolean isAggressive() {
@@ -434,7 +423,8 @@ public class RoachEntity extends PathAwareEntity {
 			setTargetFoodEntityId(-1);
 			return true;
 		}
-		source.bypassesArmor();
+		// why
+		// source.bypassesArmor();
 		return false;
 	}
 
@@ -497,16 +487,16 @@ public class RoachEntity extends PathAwareEntity {
 	@Override
 	public void onPlayerCollision(PlayerEntity player) {
 		super.onPlayerCollision(player);
-		if (!world.isClient) {
+		if (!getWorld().isClient) {
 			player.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 60, 0));
 		}
 	}
 
 	@Override
-	public void updateDynamicGameEventListener(BiConsumer<DynamicGameEventListener<?>, ServerWorld> updater) {
-		super.updateDynamicGameEventListener(updater);
-		if (world instanceof ServerWorld serverWorld) {
-			updater.accept(this.jukeboxListener, serverWorld);
+	public void updateEventHandler(BiConsumer<EntityGameEventHandler<?>, ServerWorld> callback) {
+		super.updateEventHandler(callback);
+		if (getWorld() instanceof ServerWorld serverWorld) {
+			callback.accept(this.jukeboxListener, serverWorld);
 		}
 	}
 
@@ -528,7 +518,7 @@ public class RoachEntity extends PathAwareEntity {
 			BottledRoachItem.writeRoachToTag(roachBottle, this);
 			remove(RemovalReason.DISCARDED);
 			player.setStackInHand(hand, ItemUsage.exchangeStack(itemStack, player, roachBottle, false));
-			return ActionResult.success(this.world.isClient);
+			return ActionResult.success(this.getWorld().isClient);
 		} else {
 			return super.interactMob(player, hand);
 		}
@@ -551,7 +541,7 @@ public class RoachEntity extends PathAwareEntity {
 				if (foodTarget != null && distanceTo(foodTarget) < 2) {
 					return false;
 				}
-				List<Entity> foods = world.getOtherEntities(RoachEntity.this, getBoundingBox().expand(16),
+				List<Entity> foods = getWorld().getOtherEntities(RoachEntity.this, getBoundingBox().expand(16),
 															entity -> entity instanceof ItemEntity i && i.getStack().isFood() && i.isOnGround());
 				foods.sort(Comparator.comparingDouble(e -> e.distanceTo(RoachEntity.this)));
 				for (Entity food : foods) {
@@ -610,7 +600,7 @@ public class RoachEntity extends PathAwareEntity {
 		@Override
 		public boolean canStart() {
 			if (checkTicks-- <= 0) {
-				List<Entity> roaches = world.getOtherEntities(RoachEntity.this, getBoundingBox().expand(8), entity -> entity instanceof RoachEntity);
+				List<Entity> roaches = getWorld().getOtherEntities(RoachEntity.this, getBoundingBox().expand(8), entity -> entity instanceof RoachEntity);
 				for (Entity roach : roaches) {
 					this.path = getNavigation().findPathTo(roach, 8);
 					if (path != null) {
@@ -667,16 +657,18 @@ public class RoachEntity extends PathAwareEntity {
 		}
 
 		@Override
-		public boolean listen(ServerWorld world, GameEvent.Message eventMessage) {
-			if (eventMessage.getEvent() == GameEvent.JUKEBOX_PLAY && (lastAttackedTicks > 100 || lastAttackedTicks <= 0)) {
-				RoachEntity.this.setDancing(true, new BlockPos(eventMessage.getSourcePos()));
+		public boolean listen(ServerWorld world, GameEvent event, GameEvent.Emitter emitter, Vec3d emitterPos) {
+			if(event.equals(GameEvent.JUKEBOX_PLAY) && (lastAttackedTicks > 100 || lastAttackedTicks <= 0))
+			{
+				RoachEntity.this.setDancing(true,
+					new BlockPos((int) emitterPos.getX(), (int) emitterPos.getY(), (int) emitterPos.getZ()));
 				return true;
-			} else if (eventMessage.getEvent() == GameEvent.JUKEBOX_STOP_PLAY) {
-				RoachEntity.this.setDancing(false, new BlockPos(eventMessage.getSourcePos()));
+			} else if (event.equals(GameEvent.JUKEBOX_STOP_PLAY)) {
+				RoachEntity.this.setDancing(false,
+					new BlockPos((int) emitterPos.getX(), (int) emitterPos.getY(), (int) emitterPos.getZ()));
 				return true;
-			} else {
-				return false;
 			}
+			return false;
 		}
 	}
 }

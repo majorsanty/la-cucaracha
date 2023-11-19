@@ -1,9 +1,9 @@
 package io.github.aelpecyem.la_cucaracha;
 
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.brain.LivingTargetCache;
 import net.minecraft.entity.ai.brain.MemoryModuleState;
 import net.minecraft.entity.ai.brain.MemoryModuleType;
-import net.minecraft.entity.ai.brain.VisibleLivingEntitiesCache;
 import net.minecraft.entity.ai.brain.WalkTarget;
 import net.minecraft.entity.ai.brain.task.Task;
 import net.minecraft.entity.damage.DamageSource;
@@ -12,6 +12,8 @@ import net.minecraft.server.world.ServerWorld;
 
 import com.google.common.collect.ImmutableMap;
 
+//#TODO readd crushing
+/*
 public class CrushRoachTask extends Task<VillagerEntity> {
 	private RoachEntity targetRoach;
 	public CrushRoachTask() {
@@ -54,7 +56,8 @@ public class CrushRoachTask extends Task<VillagerEntity> {
 	}
 
 	private LivingEntity findRoach(VillagerEntity villager) {
-		VisibleLivingEntitiesCache visibleLivingEntitiesCache = villager.getBrain().getOptionalMemory(MemoryModuleType.VISIBLE_MOBS).get();
-		return visibleLivingEntitiesCache.method_38975(entity -> entity instanceof RoachEntity).orElse(null);
+		LivingTargetCache visible = villager.getBrain().getOptionalMemory(MemoryModuleType.VISIBLE_MOBS).get();
+		return visible.findFirst(RoachEntity.class::isInstance).orElse(null);
 	}
 }
+ */

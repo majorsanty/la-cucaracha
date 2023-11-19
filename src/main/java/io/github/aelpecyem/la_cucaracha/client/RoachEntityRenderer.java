@@ -1,28 +1,20 @@
 package io.github.aelpecyem.la_cucaracha.client;
 
+import io.github.aelpecyem.la_cucaracha.LaCucaracha;
+import io.github.aelpecyem.la_cucaracha.RoachEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory.Context;
 import net.minecraft.client.render.entity.MobEntityRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
-import net.minecraft.client.render.entity.feature.HeldItemFeatureRenderer;
-import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.client.render.entity.model.ModelWithArms;
 import net.minecraft.client.render.item.HeldItemRenderer;
-import net.minecraft.client.render.model.json.ModelTransformation;
-import net.minecraft.client.render.model.json.ModelTransformation.Mode;
+import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.Arm;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3f;
-
-import io.github.aelpecyem.la_cucaracha.LaCucaracha;
-import io.github.aelpecyem.la_cucaracha.RoachEntity;
+import net.minecraft.util.math.RotationAxis;
 
 @Environment(EnvType.CLIENT)
 public class RoachEntityRenderer extends MobEntityRenderer<RoachEntity, RoachEntityModel> {
@@ -48,7 +40,7 @@ public class RoachEntityRenderer extends MobEntityRenderer<RoachEntity, RoachEnt
 	protected void setupTransforms(RoachEntity entity, MatrixStack matrices, float animationProgress, float bodyYaw, float tickDelta) {
 		super.setupTransforms(entity, matrices, animationProgress, bodyYaw, tickDelta);
 		if (entity.isRoachClimbing()) {
-			matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(90F));
+			matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(90F));
 			matrices.translate(0, -0.1, -0.1);
 		}
 		float size = 0.25F + entity.getSize() / 10F;
@@ -79,10 +71,10 @@ public class RoachEntityRenderer extends MobEntityRenderer<RoachEntity, RoachEnt
 			ItemStack stack = entity.getMainHandStack();
 			if (!stack.isEmpty()) {
 				matrices.push();
-				matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(-90.0F));
-				matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180.0F));
+				matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-90.0F));
+				matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180.0F));
 				matrices.translate(0, 0.2, -1.45);
-				this.heldItemRenderer.renderItem(entity, stack, Mode.GROUND, false, matrices, vertexConsumers, light);
+				this.heldItemRenderer.renderItem(entity, stack, ModelTransformationMode.GROUND, false, matrices, vertexConsumers, light);
 				matrices.pop();
 			}
 		}

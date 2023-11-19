@@ -1,22 +1,14 @@
 package io.github.aelpecyem.la_cucaracha;
 
+import io.github.aelpecyem.la_cucaracha.items.SplashBottledRoachItem;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.FlyingItemEntity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.projectile.thrown.ThrownItemEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionUtil;
-import net.minecraft.potion.Potions;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.world.World;
-
-import java.util.List;
 
 public class SplashBottledRoachEntity extends ThrownItemEntity {
 
@@ -35,10 +27,10 @@ public class SplashBottledRoachEntity extends ThrownItemEntity {
 	@Override
 	protected void onCollision(HitResult hitResult) {
 		super.onCollision(hitResult);
-		if (!this.world.isClient) {
-			world.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_SPLASH_POTION_BREAK, SoundCategory.PLAYERS, 1, 1);
+		if (!this.getWorld().isClient) {
+			getWorld().playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_SPLASH_POTION_BREAK, SoundCategory.PLAYERS, 1, 1);
 			LaCucaracha.sendRoachPotionPacket(this);
-			SplashBottledRoachItem.onHit(world, hitResult);
+			SplashBottledRoachItem.onHit(getWorld(), hitResult);
 			this.discard();
 		}
 	}

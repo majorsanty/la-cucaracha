@@ -1,22 +1,19 @@
 package io.github.aelpecyem.la_cucaracha.client;
 
+import io.github.aelpecyem.la_cucaracha.LaCucaracha;
+import io.github.aelpecyem.la_cucaracha.RoachEntity;
 import net.minecraft.client.model.Dilation;
-import net.minecraft.client.model.Model;
 import net.minecraft.client.model.ModelData;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.model.ModelPartBuilder;
 import net.minecraft.client.model.ModelPartData;
 import net.minecraft.client.model.ModelTransform;
 import net.minecraft.client.model.TexturedModelData;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
-import net.minecraft.client.render.entity.model.SpiderEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;
-
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.github.aelpecyem.la_cucaracha.LaCucaracha;
-import io.github.aelpecyem.la_cucaracha.RoachEntity;
 
 public class RoachEntityModel extends EntityModel<RoachEntity> {
 	public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(LaCucaracha.id("roach"), "main");

@@ -10,7 +10,6 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
-import io.github.aelpecyem.la_cucaracha.CrushRoachTask;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -22,7 +21,8 @@ public class VillagerTaskListProviderMixin {
 	private static void cucaracha_addRoachStomping(VillagerProfession profession, float speed,
 											CallbackInfoReturnable<ImmutableList<Pair<Integer, ? extends Task<? super VillagerEntity>>>> cir) {
 		List<Pair<Integer, ? extends Task<? super VillagerEntity>>> tasks = new ArrayList<>(cir.getReturnValue());
-		tasks.add(Pair.of(1, new CrushRoachTask()));
+		// #TODO readd
+		// tasks.add(Pair.of(1, new CrushRoachTask()));
 		cir.setReturnValue(ImmutableList.copyOf(tasks));
 	}
 }
