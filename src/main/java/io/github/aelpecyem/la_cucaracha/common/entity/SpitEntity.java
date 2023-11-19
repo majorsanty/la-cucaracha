@@ -62,8 +62,13 @@ public class SpitEntity extends ProjectileEntity {
 		Entity var3 = this.getOwner();
 		if (var3 instanceof LivingEntity livingEntity) {
 			entityHitResult.getEntity().damage(this.getDamageSources().mobProjectile(this, livingEntity), 12.0F);
-			if (entityHitResult.getEntity() instanceof LivingEntity e)
-				e.addStatusEffect(new StatusEffectInstance(LaCucaracha.CAUSTIC_FLUIDS, 100, 0, false, false));
+			if (entityHitResult.getEntity() instanceof LivingEntity e) {
+				if(e.hasStatusEffect(LaCucaracha.CAUSTIC_FLUIDS))
+					e.addStatusEffect(new StatusEffectInstance(LaCucaracha.CAUSTIC_FLUIDS, 100,
+						Math.min(3, e.getStatusEffect(LaCucaracha.CAUSTIC_FLUIDS).getAmplifier() + 1)));
+				else
+					e.addStatusEffect(new StatusEffectInstance(LaCucaracha.CAUSTIC_FLUIDS, 60, 0));
+			}
 		}
 
 	}

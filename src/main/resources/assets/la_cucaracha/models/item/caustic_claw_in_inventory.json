@@ -1,0 +1,6 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "la_cucaracha:item/caustic_claw_gui"
+  }
+}

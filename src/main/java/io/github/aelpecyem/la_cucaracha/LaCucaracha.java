@@ -6,6 +6,7 @@ import io.github.aelpecyem.la_cucaracha.common.entity.RoachEntity;
 import io.github.aelpecyem.la_cucaracha.common.entity.SpitEntity;
 import io.github.aelpecyem.la_cucaracha.common.entity.SplashBottledRoachEntity;
 import io.github.aelpecyem.la_cucaracha.common.items.BottledRoachItem;
+import io.github.aelpecyem.la_cucaracha.common.items.CausticClawItem;
 import io.github.aelpecyem.la_cucaracha.common.items.SplashBottledRoachItem;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.api.ModInitializer;
@@ -76,6 +77,7 @@ public class LaCucaracha implements ModInitializer {
 			.setDimensions(0.4F, 0.4F).maxTrackingRange(4).trackingTickInterval(3).build(MOD_ID + ":spit");
 	public static final Item BOTTLED_ROACH_ITEM = new BottledRoachItem();
 	public static final Item SPLASH_POTION_ROACH_ITEM = new SplashBottledRoachItem();
+	public static final Item CAUSTIC_CLAW_ITEM = new CausticClawItem();
 	public static final SoundEvent ROACH_SCURRY_SOUND_EVENT = SoundEvent.of(id("roach.scurry"));
 	public static final SoundEvent ROACH_HURT_SOUND_EVENT = SoundEvent.of(id("roach.hurt"));
 	public static final SoundEvent ROACH_DEATH_SOUND_EVENT = SoundEvent.of(id("roach.death"));
@@ -94,11 +96,12 @@ public class LaCucaracha implements ModInitializer {
 	public static final StatusEffect CAUSTIC_FLUIDS = new CorrosiveFluidsStatusEffect(StatusEffectCategory.HARMFUL, 0x05a301)
 		.addAttributeModifier(EntityAttributes.GENERIC_ARMOR,
 			"c527a826-6a3d-4e68-a3d3-8d52a064bc46",
-			-0.5, EntityAttributeModifier.Operation.MULTIPLY_TOTAL);
+			-0.25, EntityAttributeModifier.Operation.MULTIPLY_TOTAL);
 
 	public static DamageSource create(RegistryKey<DamageType> t, World world) {
 		return new DamageSource(world.getRegistryManager().get(RegistryKeys.DAMAGE_TYPE).entryOf(t));
 	}
+
 
 	public static void sendRoachPotionPacket(Entity entity) {
 		PacketByteBuf data = new PacketByteBuf(Unpooled.buffer());
@@ -139,6 +142,8 @@ public class LaCucaracha implements ModInitializer {
 		Registry.register(Registries.ITEM, id("splash_bottled_roach"), SPLASH_POTION_ROACH_ITEM);
 		Registry.register(Registries.ITEM, id("roach_spawn_egg"), ROACH_SPAWN_EGG_ITEM);
 		Registry.register(Registries.ITEM, id("la_cucaracha_spawn_egg"), LA_CUCARACHA_SPAWN_EGG_ITEM);
+		Registry.register(Registries.ITEM, id("caustic_claw"), CAUSTIC_CLAW_ITEM);
+
 		Registry.register(Registries.SOUND_EVENT, id("roach.scurry"), ROACH_SCURRY_SOUND_EVENT);
 		Registry.register(Registries.SOUND_EVENT, id("roach.hurt"), ROACH_HURT_SOUND_EVENT);
 		Registry.register(Registries.SOUND_EVENT, id("roach.death"), ROACH_DEATH_SOUND_EVENT);
@@ -169,10 +174,10 @@ public class LaCucaracha implements ModInitializer {
 			}
 		});
 
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> entries.add(CAUSTIC_CLAW_ITEM));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(entries -> entries.add(BOTTLED_ROACH_ITEM));
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(entries -> entries.add(SPLASH_POTION_ROACH_ITEM));
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> entries.add(SPLASH_POTION_ROACH_ITEM));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> entries.add(ROACH_SPAWN_EGG_ITEM));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> entries.add(LA_CUCARACHA_SPAWN_EGG_ITEM));
-
 	}
 }

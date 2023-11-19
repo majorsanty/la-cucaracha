@@ -10,7 +10,9 @@
     "CatEntityMixin",
     "VillagerTaskListProviderMixin"
   ],
-  "client": [],
+  "client": [
+    "ItemRendererMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

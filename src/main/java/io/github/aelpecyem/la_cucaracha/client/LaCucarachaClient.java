@@ -6,18 +6,26 @@ import io.github.aelpecyem.la_cucaracha.client.particles.RoachParticle;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
+import net.minecraft.client.util.ModelIdentifier;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.Items;
 import net.minecraft.particle.DefaultParticleType;
 import net.minecraft.particle.ItemStackParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.resource.ResourceType;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -28,6 +36,11 @@ public class LaCucarachaClient implements ClientModInitializer {
 	@Override
 	@Environment(EnvType.CLIENT)
 	public void onInitializeClient() {
+
+		Identifier causticClaw = Registries.ITEM.getId(LaCucaracha.CAUSTIC_CLAW_ITEM);
+		ModelLoadingPlugin.register(context -> context.addModels(new ModelIdentifier(causticClaw.withSuffixedPath("_in_inventory"), "inventory")));
+
+
 		EntityRendererRegistry.register(LaCucaracha.ROACH_ENTITY_TYPE, RoachEntityRenderer::new);
 		EntityRendererRegistry.register(LaCucaracha.LA_CUCARACHA_ENTITY_TYPE, LaCucarachaEntityRenderer::new);
 		EntityRendererRegistry.register(LaCucaracha.SPLASH_BOTTLED_ROACH_ENTITY_TYPE, FlyingItemEntityRenderer::new);
