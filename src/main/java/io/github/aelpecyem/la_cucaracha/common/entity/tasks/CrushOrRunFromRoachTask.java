@@ -2,6 +2,7 @@ package io.github.aelpecyem.la_cucaracha.common.entity.tasks;
 
 import com.google.common.collect.ImmutableMap;
 import io.github.aelpecyem.la_cucaracha.LaCucaracha;
+import io.github.aelpecyem.la_cucaracha.common.entity.LaCucarachaEntity;
 import io.github.aelpecyem.la_cucaracha.common.entity.RoachEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.FuzzyTargeting;
@@ -64,7 +65,7 @@ public class CrushOrRunFromRoachTask extends MultiTickTask<VillagerEntity> {
 	@Override
 	protected void finishRunning(ServerWorld world, VillagerEntity entity, long time) {
 		super.finishRunning(world, entity, time);
-		if (targetRoach != null && entity.distanceTo(targetRoach) < 1.5f) {
+		if (targetRoach != null && !(targetRoach instanceof LaCucarachaEntity) && entity.distanceTo(targetRoach) < 1.5f) {
 			targetRoach.damage(LaCucaracha.create(DamageTypes.CRAMMING, world), targetRoach.getMaxHealth());
 		}
 	}

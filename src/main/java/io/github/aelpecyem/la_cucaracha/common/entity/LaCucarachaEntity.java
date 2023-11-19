@@ -6,6 +6,7 @@ import io.github.aelpecyem.la_cucaracha.LaCucaracha;
 import mod.azure.azurelib.ai.pathing.AzureNavigation;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.EnchantingTableBlock;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.FuzzyTargeting;
 import net.minecraft.entity.ai.RangedAttackMob;
@@ -49,9 +50,8 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 
 	// passive or agressive
 	static final TrackedData<Boolean> PERSONALITY = DataTracker.registerData(LaCucarachaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-
 	static final TrackedData<Boolean> SOMBRERO = DataTracker.registerData(LaCucarachaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-	static final TrackedData<Integer> PROJECTILE_TICKS = DataTracker.registerData(LaCucarachaEntity.class, TrackedDataHandlerRegistry.INTEGER);
+	static final TrackedData<Integer> PROJECTILE_USAGE = DataTracker.registerData(LaCucarachaEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
 	//#TODO vibrations
 
@@ -113,8 +113,9 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 	@Override
 	protected void initDataTracker() {
 		dataTracker.startTracking(SOMBRERO, false);
-		dataTracker.startTracking(PROJECTILE_TICKS, 0);
+		dataTracker.startTracking(PROJECTILE_USAGE, 0);
 		super.initDataTracker();
+
 	}
 
 	@Override
@@ -139,7 +140,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 	public EntityData initialize(ServerWorldAccess world, LocalDifficulty difficulty, SpawnReason spawnReason,
 								 @Nullable EntityData entityData,
 								 @Nullable NbtCompound entityNbt) {
-		setSize(0); // size up to 5
+		setSize(0); // size up to 10
 		setVariant(0);
 		hasWings = true;
 		return entityData;
@@ -181,9 +182,10 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 	}
 
 	public boolean isUsingProjectiles() {
-		return this.dataTracker.get(PROJECTILE_TICKS) > 0;
+		return this.dataTracker.get(PROJECTILE_USAGE) >= 0 && this.isAggressive();
 	}
 
+	int ticksSearching;
 	@Override
 	public void tick() {
 		// this.setVelocity(this.getVelocity().getX(), 0.005, this.getVelocity().getZ());
@@ -198,97 +200,115 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 			}
 		} else canGrow = true;
 
-		if (isUsingProjectiles())
-			this.dataTracker.set(PROJECTILE_TICKS, this.dataTracker.get(PROJECTILE_TICKS) - 1);
+		if (this.isUsingProjectiles())
+			this.dataTracker.set(PROJECTILE_USAGE, this.dataTracker.get(PROJECTILE_USAGE) + 1);
 
 
-		this.setSize(10);
+		if(this.getSize() > 2 && this.random.nextFloat() > 0.95 && this.getMaxHealth() * 0.8 >= this.getHealth() && !this.getWorld().isClient) {
+			RoachEntity.spawnRoaches(this.getWorld(), this.getTarget() != null ? this.getTarget() : null, this.getPos(), random, this.random.nextBetween(8,15), true);
+		}
+
+
+		// this.dataTracker.set(SOMBRERO, true);
+		// this.setSize(10);
+
 		if (this.getTarget() != null) {
+
 			// #TODO if navigation ticks on roughly the same position are >= 20, break blocks around him?
-			// Prolly for a future update?
+			// #TODO probably limit block breaking ONLY when there's no path towards an entity. Prolly for a future update?
+
 			boolean spitter = this.getUuid().hashCode() % 2 == 0;
 			if (this.isAggressive()) {
-				if (spitter) {
-					if (((this.getTarget().distanceTo(this) > 3 && this.getTarget().distanceTo(this) < 24) || !isOnGround()) && this.spitAttackGoal.getSeenTargetTicks() < 120) {
-						this.spitAttackGoal.setSeenTargetTicks(0);
+                System.out.println(this.spitAttackGoal.getSeenTargetTicks());
+
+				if(this.spitAttackGoal.getSeenTargetTicks() >= 80) {
+					this.dataTracker.set(PROJECTILE_USAGE, spitter ?  -30 : -60);
+				}
+
+                if (spitter) {
+                    if (((this.getTarget().distanceTo(this) > 3 && this.getTarget().distanceTo(this) < 24) || !isOnGround()) && this.isUsingProjectiles()) {
+						// this.spitAttackGoal.setSeenTargetTicks(0);
 						this.goalSelector.remove(this.meleeAttackGoal);
 						this.goalSelector.add(2, this.getRangedGoal());
 					} else {
-						this.spitAttackGoal.setSeenTargetTicks(0);
-						if (this.spitAttackGoal.seenTargetTicks == 0)
-							this.goalSelector.remove(this.getRangedGoal());
+						// this.spitAttackGoal.setSeenTargetTicks(0);
+						this.goalSelector.remove(this.getRangedGoal());
 						this.goalSelector.add(2, this.meleeAttackGoal);
 					}
 
 				} else {
-					if (!isOnGround() && this.spitAttackGoal.getSeenTargetTicks() < 120) {
+                    if (!isOnGround() && this.isUsingProjectiles()) {
 						this.goalSelector.remove(this.meleeAttackGoal);
 						this.goalSelector.add(2, this.getRangedGoal());
 					} else {
-						this.spitAttackGoal.setSeenTargetTicks(0);
-						if (this.spitAttackGoal.seenTargetTicks == 0)
-							this.goalSelector.remove(this.getRangedGoal());
+						// this.spitAttackGoal.setSeenTargetTicks(0);
+						this.goalSelector.remove(this.getRangedGoal());
 						this.goalSelector.add(2, this.meleeAttackGoal);
 					}
 				}
 			}
+			ticksSearching++;
 
-			if (getSize() >= 1) {
-				if (this.getWorld().getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
-					int i = MathHelper.floor(this.getY());
-					int j = MathHelper.floor(this.getX());
-					int k = MathHelper.floor(this.getZ());
-					boolean bl = false;
+			breakBlocks();
+		}
 
-					int size = 1 + this.getSize() / 5;
-					for (int l = -size; l <= size; ++l) {
-						for (int m = -size; m <= size; ++m) {
-							int t = (getTarget().getPos().y + 1 >= this.getPos().y ? 3 : 1);
-							int t2 = (getTarget().getPos().y - 1 < this.getPos().y ? -3 : -1);
+		super.tick();
+	}
 
-							for (int n = t2; n <= t; ++n) {
-								int x = j + l;
-								int y = i + n;
-								int z = k + m;
-								BlockPos blockPos = new BlockPos(x, y, z);
-								BlockState blockState = this.getWorld().getBlockState(blockPos);
-								if (canDestroy(blockState, getSize() >= 1 && getSize() <= 3 ? 0 : getSize() <= 5 ? 1 : 2)) {
-									bl = this.getWorld().breakBlock(blockPos, true, this) || bl;
-								}
-							}
-						}
-					}
-				}
-			}
+	protected float getBaseMovementSpeedMultiplier() { // run from water pls
+		return isAggressive() ? 0.9F : super.getBaseMovementSpeedMultiplier();
+	}
 
-		} else {
-			if (getSize() >= 5) {
-				if (this.getWorld().getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
-					int i = MathHelper.floor(this.getY());
-					int j = MathHelper.floor(this.getX());
-					int k = MathHelper.floor(this.getZ());
-					boolean bl = false;
 
-					int size = 5;
-					for (int l = -size; l <= size; ++l) {
-						for (int m = -size; m <= size; ++m) {
-							for (int n = -size; n <= size; ++n) {
-								int x = j + l;
-								int y = i + n;
-								int z = k + m;
-								BlockPos blockPos = new BlockPos(x, y, z);
-								BlockState blockState = this.getWorld().getBlockState(blockPos);
-								if (canDestroy(blockState, 0)) {
-									bl = this.getWorld().breakBlock(blockPos, true, this) || bl;
-								}
-							}
+	public void breakBlocks() {
+
+		if (getSize() >= 1 && ticksSearching >= 20 && this.getWorld().getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
+			int i = MathHelper.floor(this.getY());
+			int j = MathHelper.floor(this.getX());
+			int k = MathHelper.floor(this.getZ());
+			boolean bl = false;
+
+			int size = 1 + this.getSize() / 5;
+			for (int l = -size; l <= size; ++l) {
+				for (int m = -size; m <= size; ++m) {
+					int t = (getTarget().getPos().y + 1 >= this.getPos().y ? 3 : 1) + (this.isClimbing() ? 1 : 0);
+					int t2 = (getTarget().getPos().y - 1 < this.getPos().y ? -3 : -1);
+
+					for (int n = t2; n <= t; ++n) {
+						int x = j + l;
+						int y = i + n;
+						int z = k + m;
+						BlockPos blockPos = new BlockPos(x, y, z);
+						BlockState blockState = this.getWorld().getBlockState(blockPos);
+						if (canDestroy(blockState, getSize() >= 1 && getSize() <= 3 ? 0 : getSize() <= 5 ? 1 : 2)) {
+							bl = this.getWorld().breakBlock(blockPos, true, this) || bl;
 						}
 					}
 				}
 			}
 		}
+		if (getSize() >= 5) {
+			int a = MathHelper.floor(this.getY());
+			int b = MathHelper.floor(this.getX());
+			int c = MathHelper.floor(this.getZ());
+			boolean bl = false;
 
-		super.tick();
+			int size = 5;
+			for (int i = -size; i <= size; ++i) {
+				for (int j = -size; j <= size; ++j) {
+					for (int k = -size; k <= size; ++k) {
+						int x = b + i;
+						int y = a + k;
+						int z = c + j;
+						BlockPos blockPos = new BlockPos(x, y, z);
+						BlockState blockState = this.getWorld().getBlockState(blockPos);
+						if (canDestroy(blockState, 0)) {
+							bl = this.getWorld().breakBlock(blockPos, true, this) || bl;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	@Override
@@ -388,20 +408,23 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 		this.dataTracker.set(SIZE, i);
 		this.refreshPosition();
 		this.calculateDimensions();
-		if (this.goalSelector.getGoals().contains(this.spitAttackGoal)) {
+		if(size == 5) {
+			this.goalSelector.remove(this.meleeAttackGoal);
+			this.goalSelector.remove(this.spitAttackGoal);
+			this.spitAttackGoal = new CustomProjectileAttackGoal(this, 1.25, 5, 10, 24F) {
+
+				@Override
+				public boolean canStart() {
+					return super.canStart() && !(getTarget() instanceof EndermanEntity) && !(getTarget() instanceof SpiderEntity);
+				}
+
+				@Override
+				public boolean shouldContinue() {
+					return super.shouldContinue();
+				}
+			};
 		}
-		this.spitAttackGoal = new CustomProjectileAttackGoal(this, 1.25, 5, 10, 24F) {
 
-			@Override
-			public boolean canStart() {
-				return super.canStart() && !(getTarget() instanceof EndermanEntity) && !(getTarget() instanceof SpiderEntity);
-			}
-
-			@Override
-			public boolean shouldContinue() {
-				return super.shouldContinue();
-			}
-		};
 		Multimap<EntityAttribute, EntityAttributeModifier> map = ArrayListMultimap.create();
 		map.put(EntityAttributes.GENERIC_MAX_HEALTH, new EntityAttributeModifier(UUID.fromString("d54c0487-edb5-4496-a0ab-609801d77a91"), "health modif", i / 10f, EntityAttributeModifier.Operation.MULTIPLY_BASE));
 		map.put(EntityAttributes.GENERIC_ATTACK_SPEED, new EntityAttributeModifier(UUID.fromString("d59597ff-f6e8-4ab4-975d-bdb03fd60914"), "attack speed modif", i / 10f, EntityAttributeModifier.Operation.MULTIPLY_BASE));
@@ -462,7 +485,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 		});
 
 
-		this.targetSelector.add(8, new ActiveTargetGoal<>(this, RoachEntity.class, true) {
+		this.targetSelector.add(4, new ActiveTargetGoal<>(this, RoachEntity.class, true) {
 			@Override
 			public boolean canStart() {
 				return isAggressive() && getMaxHealth() / 2 >= getHealth() && super.canStart();
@@ -494,7 +517,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 	@Override
 	public void attack(LivingEntity target, float pullProgress) {
 		SpitEntity spitEntity = new SpitEntity(this.getWorld(), this);
-		this.dataTracker.set(PROJECTILE_TICKS, 40);
+		// this.dataTracker.set(NO_PROJECTILE, 40);
 
 		if (this.getSize() >= 5) {
 			for (int i = 0; i < 64; i++) {
@@ -562,6 +585,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 
 		@Override
 		public void start() {
+			this.cucaracha.dataTracker.set(PROJECTILE_USAGE, 0); // Allows for jumping roaches to always spit facts
 			Vec3d vec3d = this.cucaracha.getVelocity();
 			Vec3d vec3d2 = new Vec3d(this.target.getX() - this.cucaracha.getX(), 0.0, this.target.getZ() - this.cucaracha.getZ());
 			if (vec3d2.lengthSquared() > 1.0E-7) {
@@ -642,7 +666,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 
 		public void tick() {
 			double d = this.mob.squaredDistanceTo(this.target.getX(), this.target.getY(), this.target.getZ());
-			boolean bl = this.mob.getVisibilityCache().canSee(this.target);
+			boolean bl = true;
 			if (bl) {
 				++this.seenTargetTicks;
 			} else {

@@ -166,16 +166,17 @@ public class LaCucarachaEntityModel extends EntityModel<LaCucarachaEntity> {
 			// lowerJaw.yaw =  MathHelper.PI * 0.0125F * MathHelper.sin(progress);
 			lowerJaw.pitch = MathHelper.PI * 0.025F * MathHelper.sin(progress);
 
-			if (entity.isUsingProjectiles()) {
-				lowerJaw.pitch = 0.25f;
-				upperJaw.pitch = -0.25f;
-			}
-
 		} else {
 			rAntenna.yaw = 0;
 			lAntenna.yaw = 0;
 			lowerJaw.pitch = 0;
 			upperJaw.pitch = 0;
+		}
+
+
+		if (entity.isUsingProjectiles()) {
+			lowerJaw.pitch = 0.25f;
+			upperJaw.pitch = -0.25f;
 		}
 
 		if (dancing) {
