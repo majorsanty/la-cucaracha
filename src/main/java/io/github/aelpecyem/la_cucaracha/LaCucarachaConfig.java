@@ -16,10 +16,10 @@ public class LaCucarachaConfig extends MidnightConfig {
 	public static boolean roachSpawnEnabledFood = true;
 
 	@Entry(min = 1, max = Integer.MAX_VALUE)
-	public static int roachSpawnIntervalFood = 100;
+	public static int roachSpawnIntervalFood = 80;
 
 	@Entry(min = 1, max = 15)
-	public static int roachMaxGroupSize = 2;
+	public static int roachMaxGroupSize = 3;
 
 	@Entry(min = 1, max = 20)
 	public static int roachAggressionGroupSize = 2;

@@ -1,14 +1,11 @@
-package io.github.aelpecyem.la_cucaracha;
+package io.github.aelpecyem.la_cucaracha.common.items;
 
+import io.github.aelpecyem.la_cucaracha.LaCucaracha;
+import io.github.aelpecyem.la_cucaracha.common.entity.RoachEntity;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsage;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
@@ -20,7 +17,7 @@ import net.minecraft.world.World;
 public class BottledRoachItem extends Item {
 
 	public BottledRoachItem() {
-		super(new FabricItemSettings().group(ItemGroup.BREWING).maxCount(1).recipeRemainder(Items.GLASS_BOTTLE));
+		super(new FabricItemSettings().maxCount(1).recipeRemainder(Items.GLASS_BOTTLE));
 	}
 
 	public static void writeRoachToTag(ItemStack bottle, RoachEntity entity) {

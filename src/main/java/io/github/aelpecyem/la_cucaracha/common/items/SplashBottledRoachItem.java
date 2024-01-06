@@ -1,5 +1,7 @@
-package io.github.aelpecyem.la_cucaracha;
+package io.github.aelpecyem.la_cucaracha.common.items;
 
+import io.github.aelpecyem.la_cucaracha.common.entity.RoachEntity;
+import io.github.aelpecyem.la_cucaracha.common.entity.SplashBottledRoachEntity;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.block.dispenser.DispenserBehavior;
@@ -9,7 +11,6 @@ import net.minecraft.entity.ai.TargetPredicate;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -29,7 +30,7 @@ import net.minecraft.world.World;
 public class SplashBottledRoachItem extends Item {
 
 	public SplashBottledRoachItem() {
-		super(new FabricItemSettings().group(ItemGroup.BREWING).maxCount(1));
+		super(new FabricItemSettings().maxCount(1));
 		DispenserBlock.registerBehavior(this, new DispenserBehavior() {
 			@Override
 			public ItemStack dispense(BlockPointer blockPointer, ItemStack itemStack) {

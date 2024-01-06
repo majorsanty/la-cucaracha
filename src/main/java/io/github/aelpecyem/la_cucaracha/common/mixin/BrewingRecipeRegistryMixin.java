@@ -1,10 +1,9 @@
-package io.github.aelpecyem.la_cucaracha.mixin;
+package io.github.aelpecyem.la_cucaracha.common.mixin;
 
+import io.github.aelpecyem.la_cucaracha.LaCucaracha;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.BrewingRecipeRegistry;
-
-import io.github.aelpecyem.la_cucaracha.LaCucaracha;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

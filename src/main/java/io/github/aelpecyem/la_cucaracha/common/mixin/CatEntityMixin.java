@@ -1,6 +1,6 @@
-package io.github.aelpecyem.la_cucaracha.mixin;
+package io.github.aelpecyem.la_cucaracha.common.mixin;
 
-import io.github.aelpecyem.la_cucaracha.RoachEntity;
+import io.github.aelpecyem.la_cucaracha.common.entity.RoachEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.passive.CatEntity;

@@ -1,4 +1,4 @@
-package io.github.aelpecyem.la_cucaracha;
+package io.github.aelpecyem.la_cucaracha.common;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.AttributeContainer;

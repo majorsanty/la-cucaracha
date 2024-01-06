@@ -24,5 +24,59 @@
       "la_cucaracha:roach_death2",
       "la_cucaracha:roach_death3"
     ]
+  },
+  "la_cucaracha.attack": {
+    "subtitle": "subtitles.la_cucaracha.la_cucaracha.attack",
+    "sounds": [
+      "la_cucaracha:la_cucaracha.attack1",
+      "la_cucaracha:la_cucaracha.attack2",
+      "la_cucaracha:la_cucaracha.attack3"
+    ]
+  },
+  "la_cucaracha.evolve": {
+    "subtitle": "subtitles.la_cucaracha.la_cucaracha.evolve",
+    "sounds": [
+      "la_cucaracha:la_cucaracha.evolve"
+    ]
+  },
+  "la_cucaracha.scurry": {
+    "subtitle": "subtitles.la_cucaracha.la_cucaracha.scurry",
+    "sounds": [
+      "la_cucaracha:la_cucaracha.scurry1",
+      "la_cucaracha:la_cucaracha.scurry2",
+      "la_cucaracha:la_cucaracha.scurry3",
+      "la_cucaracha:la_cucaracha.scurry4"
+    ]
+  },
+  "la_cucaracha.hurt": {
+    "subtitle": "subtitles.la_cucaracha.la_cucaracha.hurt",
+    "sounds": [
+      "la_cucaracha:michael_hit1",
+      "la_cucaracha:michael_hit2",
+      "la_cucaracha:michael_hit3",
+      "la_cucaracha:michael_hit4",
+      "la_cucaracha:michael_hit5",
+      "la_cucaracha:michael_hit6",
+      "la_cucaracha:michael_hit7"
+    ]
+  },
+  "la_cucaracha.fly": {
+    "subtitle": "subtitles.la_cucaracha.la_cucaracha.fly",
+    "sounds": [
+      "la_cucaracha:la_cucaracha_fly"
+    ]
+  },
+  "la_cucaracha.land": {
+    "subtitle": "subtitles.la_cucaracha.la_cucaracha.land",
+    "sounds": [
+      "la_cucaracha:la_cucaracha_land"
+    ]
+  },
+  "la_cucaracha.puke": {
+    "subtitle": "subtitles.la_cucaracha.la_cucaracha.puke",
+    "sounds": [
+      "la_cucaracha:la_cucaracha_puke1",
+      "la_cucaracha:la_cucaracha_puke2"
+    ]
   }
 }
