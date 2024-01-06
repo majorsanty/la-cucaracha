@@ -24,6 +24,7 @@ import net.minecraft.world.World;
 @Environment(EnvType.CLIENT)
 public class LaCucarachaClient implements ClientModInitializer {
 	public static DefaultParticleType AWFUL_SPIT_PARTICLE_EFFECT = Registry.register(Registries.PARTICLE_TYPE, LaCucaracha.id("awful_spit"), FabricParticleTypes.simple());
+
 	@Override
 	@Environment(EnvType.CLIENT)
 	public void onInitializeClient() {

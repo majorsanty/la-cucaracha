@@ -2,7 +2,6 @@
   "schemaVersion": 1,
   "id": "la_cucaracha",
   "version": "${version}",
-
   "name": "La Cucaracha",
   "description": "Adds roaches to the game.",
   "authors": [
@@ -15,10 +14,8 @@
     "issues": "https://github.com/Aelpecyem/la-cucaracha/issues",
     "sources": "https://github.com/Aelpecyem/la-cucaracha"
   },
-
   "license": "CC0-1.0",
   "icon": "assets/la_cucaracha/icon.png",
-
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -31,7 +28,6 @@
   "mixins": [
     "la_cucaracha.mixins.json"
   ],
-
   "depends": {
     "fabricloader": "*",
     "fabric-api": "*",

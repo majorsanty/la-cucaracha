@@ -5,15 +5,15 @@ quilt_mappings = "1.19.2+build.3"
 fabric_loader = "0.15.3"
 
 fabric_api = "0.91.0+1.20.1"
-midnight_lib="1.4.1-fabric"
-azure_lib="1.0.19"
+midnight_lib = "1.4.1-fabric"
+azure_lib = "1.0.19"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
 quilt_mappings = { module = "org.quiltmc:quilt-mappings", version.ref = "quilt_mappings" }
 fabric_loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric_loader" }
 fabric_api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric_api" }
-midnight_lib = { module = "maven.modrinth:midnightlib", version.ref = "midnight_lib"}
-azure_lib = { module = "mod.azure.azurelib:azurelib-fabric-1.20.1", version.ref = "azure_lib"}
+midnight_lib = { module = "maven.modrinth:midnightlib", version.ref = "midnight_lib" }
+azure_lib = { module = "mod.azure.azurelib:azurelib-fabric-1.20.1", version.ref = "azure_lib" }
 
 # If you have multiple similar dependencies, you can declare a dependency bundle and reference it on the build script with "libs.bundles.example".

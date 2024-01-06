@@ -56,8 +56,9 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 	//#TODO vibrations
 
 	private final Vibrations.ListenerData vibrationListenerData = new Vibrations.ListenerData();
-//	private final Vibrations.Callback vibrationCallback = new VibrationCallback();
+	//	private final Vibrations.Callback vibrationCallback = new VibrationCallback();
 	private final MeleeAttackGoal meleeAttackGoal = new MeleeAttackGoal(this, 1.5, false);
+	boolean canGrow = true;
 	private CustomProjectileAttackGoal spitAttackGoal = new CustomProjectileAttackGoal(this, 1.25, 5, 10, 24F) {
 
 		@Override
@@ -71,12 +72,6 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 		}
 	};
 
-	public CustomProjectileAttackGoal getRangedGoal() {
-		return spitAttackGoal;
-	}
-
-
-	boolean canGrow = true;
 
 	public LaCucarachaEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
 		super(entityType, world);
@@ -99,6 +94,10 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 			.add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, 0.85)
 			.add(EntityAttributes.GENERIC_ATTACK_KNOCKBACK, 0.75)
 			.add(EntityAttributes.GENERIC_ARMOR_TOUGHNESS, 5.0);
+	}
+
+	public CustomProjectileAttackGoal getRangedGoal() {
+		return spitAttackGoal;
 	}
 
 	@Override
@@ -156,7 +155,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 			if (world.random.nextFloat() > 0.5 && !hasSombrero()) {
 				this.dataTracker.set(SOMBRERO, true);
 			}
-			if(this.age % 20 == 0)
+			if (this.age % 20 == 0)
 				this.playSound(LaCucaracha.LA_CUCARACHA_EVOLVE_SOUND_EVENT, 4F, 1.0F);
 		}
 
@@ -199,7 +198,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 			}
 		} else canGrow = true;
 
-		if(isUsingProjectiles())
+		if (isUsingProjectiles())
 			this.dataTracker.set(PROJECTILE_TICKS, this.dataTracker.get(PROJECTILE_TICKS) - 1);
 
 
@@ -216,7 +215,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 						this.goalSelector.add(2, this.getRangedGoal());
 					} else {
 						this.spitAttackGoal.setSeenTargetTicks(0);
-						if(this.spitAttackGoal.seenTargetTicks == 0)
+						if (this.spitAttackGoal.seenTargetTicks == 0)
 							this.goalSelector.remove(this.getRangedGoal());
 						this.goalSelector.add(2, this.meleeAttackGoal);
 					}
@@ -227,7 +226,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 						this.goalSelector.add(2, this.getRangedGoal());
 					} else {
 						this.spitAttackGoal.setSeenTargetTicks(0);
-						if(this.spitAttackGoal.seenTargetTicks == 0)
+						if (this.spitAttackGoal.seenTargetTicks == 0)
 							this.goalSelector.remove(this.getRangedGoal());
 						this.goalSelector.add(2, this.meleeAttackGoal);
 					}
@@ -262,8 +261,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 				}
 			}
 
-		} else
-		{
+		} else {
 			if (getSize() >= 5) {
 				if (this.getWorld().getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING)) {
 					int i = MathHelper.floor(this.getY());
@@ -280,7 +278,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 								int z = k + m;
 								BlockPos blockPos = new BlockPos(x, y, z);
 								BlockState blockState = this.getWorld().getBlockState(blockPos);
-								if (canDestroy(blockState,0)) {
+								if (canDestroy(blockState, 0)) {
 									bl = this.getWorld().breakBlock(blockPos, true, this) || bl;
 								}
 							}
@@ -310,7 +308,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 	}
 
 	public boolean canDestroy(BlockState block, int i) {
-		if (i==0)
+		if (i == 0)
 			return !block.isAir() && !block.isIn(BlockTags.WITHER_IMMUNE) && block.getBlock().getHardness() <= Blocks.ACACIA_LEAVES.getHardness();
 
 		if (getSize() >= 4 && getSize() <= 5)
@@ -358,7 +356,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 			}
 		}
 
-		if(!isOnGround() && this.age % 20 == 0)
+		if (!isOnGround() && this.age % 20 == 0)
 			this.playSound(LaCucaracha.LA_CUCARACHA_FLY_SOUND_EVENT, 1 + 3F * random.nextFloat(), 1.0F + random.nextFloat());
 
 	}
@@ -390,7 +388,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 		this.dataTracker.set(SIZE, i);
 		this.refreshPosition();
 		this.calculateDimensions();
-		if(this.goalSelector.getGoals().contains(this.spitAttackGoal)) {
+		if (this.goalSelector.getGoals().contains(this.spitAttackGoal)) {
 		}
 		this.spitAttackGoal = new CustomProjectileAttackGoal(this, 1.25, 5, 10, 24F) {
 
@@ -425,7 +423,7 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 	}
 
 	public boolean disablesShield() {
-		return random.nextFloat() > 1 - (getSize()/10f+0.1);
+		return random.nextFloat() > 1 - (getSize() / 10f + 0.1);
 	}
 
 	public LaCucarachaEntity getEntity() {
@@ -581,6 +579,99 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 		}
 	}
 
+	public static class CustomProjectileAttackGoal extends Goal {
+		private final MobEntity mob;
+		private final RangedAttackMob owner;
+		private final double mobSpeed;
+		private final int minIntervalTicks;
+		private final int maxIntervalTicks;
+		private final float maxShootRange;
+		private final float squaredMaxShootRange;
+		public int seenTargetTicks;
+		@Nullable
+		private LivingEntity target;
+		private int updateCountdownTicks;
+
+		public CustomProjectileAttackGoal(LaCucarachaEntity mob, double mobSpeed, int minIntervalTicks, int maxIntervalTicks, float maxShootRange) {
+			this.updateCountdownTicks = -1;
+			if (mob == null) {
+				throw new IllegalArgumentException("ArrowAttackGoal requires Mob implements RangedAttackMob");
+			} else {
+				this.owner = mob;
+				this.mob = mob;
+				this.mobSpeed = mobSpeed;
+				this.minIntervalTicks = minIntervalTicks * (mob.getSize() >= 5 ? 5 : 1);
+				this.maxIntervalTicks = maxIntervalTicks * (mob.getSize() >= 5 ? 5 : 1);
+				this.maxShootRange = maxShootRange;
+				this.squaredMaxShootRange = maxShootRange * maxShootRange;
+				this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
+			}
+		}
+
+		public int getSeenTargetTicks() {
+			return seenTargetTicks;
+		}
+
+		public void setSeenTargetTicks(int i) {
+			this.seenTargetTicks = i;
+		}
+
+		public boolean canStart() {
+			LivingEntity livingEntity = this.mob.getTarget();
+			if (livingEntity != null && livingEntity.isAlive()) {
+				this.target = livingEntity;
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		public boolean shouldContinue() {
+			return this.canStart() || this.target.isAlive() && !this.mob.getNavigation().isIdle() && this.seenTargetTicks < 100;
+		}
+
+		public void stop() {
+			this.target = null;
+			this.seenTargetTicks = 0;
+			this.updateCountdownTicks = -1;
+		}
+
+		public boolean shouldRunEveryTick() {
+			return true;
+		}
+
+		public void tick() {
+			double d = this.mob.squaredDistanceTo(this.target.getX(), this.target.getY(), this.target.getZ());
+			boolean bl = this.mob.getVisibilityCache().canSee(this.target);
+			if (bl) {
+				++this.seenTargetTicks;
+			} else {
+				this.seenTargetTicks = 0;
+			}
+
+			if (!(d > (double) this.squaredMaxShootRange) && this.seenTargetTicks >= 5) {
+				this.mob.getNavigation().stop();
+			} else {
+				this.mob.getNavigation().startMovingTo(this.target, this.mobSpeed);
+			}
+
+			this.mob.getLookControl().lookAt(this.target, 30.0F, 30.0F);
+			if (--this.updateCountdownTicks == 0) {
+				if (!bl) {
+					return;
+				}
+
+				float f = (float) Math.sqrt(d) / this.maxShootRange;
+				float g = MathHelper.clamp(f, 0.1F, 1.0F);
+				this.owner.attack(this.target, g);
+				this.updateCountdownTicks = MathHelper.floor(f * (float) (this.maxIntervalTicks - this.minIntervalTicks) + (float) this.minIntervalTicks);
+			} else if (this.updateCountdownTicks < 0) {
+				this.updateCountdownTicks = MathHelper.floor(MathHelper.lerp(Math.sqrt(d) / (double) this.maxShootRange, (double) this.minIntervalTicks, (double) this.maxIntervalTicks));
+			}
+
+		}
+	}
+
 	class EatFoodGoal extends Goal {
 
 		Path path;
@@ -644,98 +735,6 @@ public class LaCucarachaEntity extends RoachEntity implements RangedAttackMob, V
 				setTargetFoodEntityId(target.getId());
 				stop();
 			}
-		}
-	}
-	public static class CustomProjectileAttackGoal extends Goal {
-		private final MobEntity mob;
-		private final RangedAttackMob owner;
-		@Nullable
-		private LivingEntity target;
-		private int updateCountdownTicks;
-		private final double mobSpeed;
-		public int seenTargetTicks;
-		private final int minIntervalTicks;
-		private final int maxIntervalTicks;
-		private final float maxShootRange;
-		private final float squaredMaxShootRange;
-
-		public CustomProjectileAttackGoal(LaCucarachaEntity mob, double mobSpeed, int minIntervalTicks, int maxIntervalTicks, float maxShootRange) {
-			this.updateCountdownTicks = -1;
-			if (mob == null) {
-				throw new IllegalArgumentException("ArrowAttackGoal requires Mob implements RangedAttackMob");
-			} else {
-				this.owner = mob;
-				this.mob = mob;
-				this.mobSpeed = mobSpeed;
-				this.minIntervalTicks = minIntervalTicks * (mob.getSize() >= 5 ? 5 : 1);
-				this.maxIntervalTicks = maxIntervalTicks * (mob.getSize() >= 5 ? 5 : 1);
-				this.maxShootRange = maxShootRange;
-				this.squaredMaxShootRange = maxShootRange * maxShootRange;
-				this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
-			}
-		}
-
-		public int getSeenTargetTicks() {
-			return seenTargetTicks;
-		}
-
-		public void setSeenTargetTicks(int i) {
-			this.seenTargetTicks = i;
-		}
-
-		public boolean canStart() {
-			LivingEntity livingEntity = this.mob.getTarget();
-			if (livingEntity != null && livingEntity.isAlive()) {
-				this.target = livingEntity;
-				return true;
-			} else {
-				return false;
-			}
-		}
-
-		public boolean shouldContinue() {
-			return this.canStart() || this.target.isAlive() && !this.mob.getNavigation().isIdle() && this.seenTargetTicks < 100;
-		}
-
-		public void stop() {
-			this.target = null;
-			this.seenTargetTicks = 0;
-			this.updateCountdownTicks = -1;
-		}
-
-		public boolean shouldRunEveryTick() {
-			return true;
-		}
-
-		public void tick() {
-			double d = this.mob.squaredDistanceTo(this.target.getX(), this.target.getY(), this.target.getZ());
-			boolean bl = this.mob.getVisibilityCache().canSee(this.target);
-			if (bl) {
-				++this.seenTargetTicks;
-			} else {
-				this.seenTargetTicks = 0;
-			}
-
-			if (!(d > (double)this.squaredMaxShootRange) && this.seenTargetTicks >= 5) {
-				this.mob.getNavigation().stop();
-			} else {
-				this.mob.getNavigation().startMovingTo(this.target, this.mobSpeed);
-			}
-
-			this.mob.getLookControl().lookAt(this.target, 30.0F, 30.0F);
-			if (--this.updateCountdownTicks == 0) {
-				if (!bl) {
-					return;
-				}
-
-				float f = (float)Math.sqrt(d) / this.maxShootRange;
-				float g = MathHelper.clamp(f, 0.1F, 1.0F);
-				this.owner.attack(this.target, g);
-				this.updateCountdownTicks = MathHelper.floor(f * (float)(this.maxIntervalTicks - this.minIntervalTicks) + (float)this.minIntervalTicks);
-			} else if (this.updateCountdownTicks < 0) {
-				this.updateCountdownTicks = MathHelper.floor(MathHelper.lerp(Math.sqrt(d) / (double)this.maxShootRange, (double)this.minIntervalTicks, (double)this.maxIntervalTicks));
-			}
-
 		}
 	}
 

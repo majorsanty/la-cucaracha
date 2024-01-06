@@ -19,7 +19,7 @@ import java.util.List;
 public class VillagerTaskListProviderMixin {
 	@Inject(method = "createIdleTasks", at = @At("RETURN"), cancellable = true)
 	private static void cucaracha_addRoachStomping(VillagerProfession profession, float speed,
-											CallbackInfoReturnable<ImmutableList<Pair<Integer, ? extends Task<? super VillagerEntity>>>> cir) {
+												   CallbackInfoReturnable<ImmutableList<Pair<Integer, ? extends Task<? super VillagerEntity>>>> cir) {
 		List<Pair<Integer, ? extends Task<? super VillagerEntity>>> tasks = new ArrayList<>(cir.getReturnValue());
 
 		tasks.add(Pair.of(1, new CrushOrRunFromRoachTask()));

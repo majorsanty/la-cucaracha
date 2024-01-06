@@ -62,8 +62,12 @@ public class LaCucaracha implements ModInitializer {
 
 	public static final EntityType<RoachEntity> ROACH_ENTITY_TYPE = EntityType.Builder.create(RoachEntity::new, SpawnGroup.MONSTER)
 		.setDimensions(0.25F, 0.25F).maxTrackingRange(8).build(MOD_ID + ":roach");
+	public static final Item ROACH_SPAWN_EGG_ITEM = new SpawnEggItem(ROACH_ENTITY_TYPE, 0x3d2a0f, 0x42392c,
+		new FabricItemSettings());
 	public static final EntityType<LaCucarachaEntity> LA_CUCARACHA_ENTITY_TYPE = EntityType.Builder.create(LaCucarachaEntity::new, SpawnGroup.MONSTER)
 		.setDimensions(2.25F, 1F).maxTrackingRange(16).trackingTickInterval(1).spawnableFarFromPlayer().makeFireImmune().build(MOD_ID + ":la_cucaracha");
+	public static final Item LA_CUCARACHA_SPAWN_EGG_ITEM = new SpawnEggItem(LA_CUCARACHA_ENTITY_TYPE, 0x05a301, 0x3d2a0f,
+		new FabricItemSettings());
 	public static final EntityType<SplashBottledRoachEntity> SPLASH_BOTTLED_ROACH_ENTITY_TYPE =
 		EntityType.Builder.create((EntityFactory<SplashBottledRoachEntity>) SplashBottledRoachEntity::new, SpawnGroup.MISC)
 			.setDimensions(0.25F, 0.25F).maxTrackingRange(4).trackingTickInterval(10).build(MOD_ID + ":splash_bottled_roach");
@@ -72,10 +76,6 @@ public class LaCucaracha implements ModInitializer {
 			.setDimensions(0.4F, 0.4F).maxTrackingRange(4).trackingTickInterval(3).build(MOD_ID + ":spit");
 	public static final Item BOTTLED_ROACH_ITEM = new BottledRoachItem();
 	public static final Item SPLASH_POTION_ROACH_ITEM = new SplashBottledRoachItem();
-	public static final Item ROACH_SPAWN_EGG_ITEM = new SpawnEggItem(ROACH_ENTITY_TYPE, 0x3d2a0f, 0x42392c,
-		new FabricItemSettings());
-	public static final Item LA_CUCARACHA_SPAWN_EGG_ITEM = new SpawnEggItem(LA_CUCARACHA_ENTITY_TYPE, 0x05a301, 0x3d2a0f,
-		new FabricItemSettings());
 	public static final SoundEvent ROACH_SCURRY_SOUND_EVENT = SoundEvent.of(id("roach.scurry"));
 	public static final SoundEvent ROACH_HURT_SOUND_EVENT = SoundEvent.of(id("roach.hurt"));
 	public static final SoundEvent ROACH_DEATH_SOUND_EVENT = SoundEvent.of(id("roach.death"));
@@ -120,6 +120,10 @@ public class LaCucaracha implements ModInitializer {
 		PlayerLookup.tracking(world, new BlockPos((int) pos.getX(), (int) pos.getX(), (int) pos.getZ())).forEach(p -> ServerPlayNetworking.send(p, PARTICLE_PACKET, data));
 	}
 
+	public static Identifier id(String s) {
+		return new Identifier(MOD_ID, s);
+	}
+
 	@Override
 	public void onInitialize() {
 		LaCucarachaConfig.init(MOD_ID, LaCucarachaConfig.class);
@@ -158,8 +162,8 @@ public class LaCucaracha implements ModInitializer {
 				Random random = killedEntity.getRandom();
 				if (killedEntity.getType().isIn(ROACH_CARRIERS) && random.nextInt(8) == 0) {
 					RoachEntity.spawnRoaches(world, entity instanceof LivingEntity l ? l : null,
-							killedEntity.getPos().add(0, killedEntity.getHeight() / 2, 0),
-							random, 1 + random.nextInt(3), false);
+						killedEntity.getPos().add(0, killedEntity.getHeight() / 2, 0),
+						random, 1 + random.nextInt(3), false);
 					sendRoachPotionPacket(world, killedEntity.getPos().add(0, killedEntity.getHeight() / 2, 0));
 				}
 			}
@@ -170,9 +174,5 @@ public class LaCucaracha implements ModInitializer {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> entries.add(ROACH_SPAWN_EGG_ITEM));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> entries.add(LA_CUCARACHA_SPAWN_EGG_ITEM));
 
-	}
-
-	public static Identifier id(String s) {
-		return new Identifier(MOD_ID, s);
 	}
 }

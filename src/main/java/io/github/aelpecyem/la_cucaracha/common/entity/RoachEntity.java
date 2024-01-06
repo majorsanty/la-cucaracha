@@ -58,11 +58,11 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 
 public class RoachEntity extends PathAwareEntity {
+	static final TrackedData<Integer> SIZE = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	/**
 	 * Roach Flags Indexes: 0 - Dancing 1 - Climbing 2 - Flying 3 - ??? 4,5 - Variant
 	 */
 	private static final TrackedData<Byte> ROACH_FLAGS = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.BYTE);
-	static final TrackedData<Integer> SIZE = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final TrackedData<Integer> TARGET_FOOD_ENTITY_ID = DataTracker.registerData(RoachEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
 	private final EntityGameEventHandler<JukeboxListener> jukeboxListener;
@@ -80,15 +80,6 @@ public class RoachEntity extends PathAwareEntity {
 		getNavigation().setRangeMultiplier(0.1F);
 	}
 
-	public EntityGroup getGroup() {
-		return EntityGroup.ARTHROPOD;
-	}
-
-	@Override
-	public float getPathfindingFavor(BlockPos pos) {
-		return Math.max(1 - getWorld().getLightLevel(pos) / 16F, 0.5F);
-	}
-
 	public static Builder createRoachAttributes() {
 		return SilverfishEntity.createSilverfishAttributes();
 	}
@@ -98,8 +89,8 @@ public class RoachEntity extends PathAwareEntity {
 			RoachEntity roach = new RoachEntity(LaCucaracha.ROACH_ENTITY_TYPE, world);
 			roach.updatePositionAndAngles(pos.getX(), pos.getY(), pos.getZ(), random.nextInt(360), 0);
 			roach.setVelocity(MathHelper.nextFloat(random, 0.07F, 0.1F),
-							  MathHelper.nextFloat(random, 0.3F, 0.5F),
-							  MathHelper.nextFloat(random, 0.07F, 0.1F));
+				MathHelper.nextFloat(random, 0.3F, 0.5F),
+				MathHelper.nextFloat(random, 0.07F, 0.1F));
 			roach.setSummoned(summoned);
 			roach.initialize((ServerWorldAccess) world, world.getLocalDifficulty(roach.getBlockPos()), SpawnReason.MOB_SUMMONED, null, null);
 
@@ -109,6 +100,15 @@ public class RoachEntity extends PathAwareEntity {
 			}
 			world.spawnEntity(roach);
 		}
+	}
+
+	public EntityGroup getGroup() {
+		return EntityGroup.ARTHROPOD;
+	}
+
+	@Override
+	public float getPathfindingFavor(BlockPos pos) {
+		return Math.max(1 - getWorld().getLightLevel(pos) / 16F, 0.5F);
 	}
 
 	@Override
@@ -203,12 +203,12 @@ public class RoachEntity extends PathAwareEntity {
 				if (stack.isFood()) {
 					if (getWorld().isClient) {
 						getWorld().addParticle(new ItemStackParticleEffect(ParticleTypes.ITEM, stack), getX(), getY(), getZ(),
-										  random.nextGaussian() * 0.1, random.nextFloat() * 0.1, random.nextGaussian() * 0.1);
+							random.nextGaussian() * 0.1, random.nextFloat() * 0.1, random.nextGaussian() * 0.1);
 					} else {
 						eatingTicks++;
 						if (eatingTicks > 0) {
 							this.playSound(SoundEvents.ENTITY_GENERIC_EAT, 0.1F + 0.05F * (float) this.random.nextInt(2),
-										   (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.2F);
+								(this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.2F);
 							if (eatingTicks > stack.getMaxUseTime()) {
 								if (stack.getItem().getRecipeRemainder() != null) {
 									dropItem(stack.getItem().getRecipeRemainder());
@@ -534,7 +534,7 @@ public class RoachEntity extends PathAwareEntity {
 					return false;
 				}
 				List<Entity> foods = getWorld().getOtherEntities(RoachEntity.this, getBoundingBox().expand(16),
-															entity -> entity instanceof ItemEntity i && i.getStack().isFood() && i.isOnGround());
+					entity -> entity instanceof ItemEntity i && i.getStack().isFood() && i.isOnGround());
 				foods.sort(Comparator.comparingDouble(e -> e.distanceTo(RoachEntity.this)));
 				for (Entity food : foods) {
 					this.path = getNavigation().findPathTo(food, 16);

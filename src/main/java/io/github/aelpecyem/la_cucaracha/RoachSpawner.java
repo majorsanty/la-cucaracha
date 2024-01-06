@@ -74,12 +74,12 @@ public class RoachSpawner implements Spawner {
 
 	private void spawnFromFood(ServerWorld world, BlockPos blockPos) {
 		int i = world.getEntitiesByType(TypeFilter.instanceOf(ItemEntity.class), new Box(blockPos.getX() - ITEM_SPAWN_RADIUS,
-																						 blockPos.getY() - ITEM_SPAWN_RADIUS,
-																						 blockPos.getZ() - ITEM_SPAWN_RADIUS,
-																						 blockPos.getX() + ITEM_SPAWN_RADIUS,
-																						 blockPos.getY() + ITEM_SPAWN_RADIUS,
-																						 blockPos.getZ() + ITEM_SPAWN_RADIUS),
-										item -> item.getStack().isFood() && item.isOnGround()).size();
+				blockPos.getY() - ITEM_SPAWN_RADIUS,
+				blockPos.getZ() - ITEM_SPAWN_RADIUS,
+				blockPos.getX() + ITEM_SPAWN_RADIUS,
+				blockPos.getY() + ITEM_SPAWN_RADIUS,
+				blockPos.getZ() + ITEM_SPAWN_RADIUS),
+			item -> item.getStack().isFood() && item.isOnGround()).size();
 		if (i > 0) {
 			if (SpawnHelper.canSpawn(SpawnRestriction.Location.ON_GROUND, world, blockPos, LaCucaracha.ROACH_ENTITY_TYPE)) {
 				this.spawn(blockPos, world);
@@ -110,13 +110,13 @@ public class RoachSpawner implements Spawner {
 		if (structurePos != null && blockPos.getManhattanDistance(structurePos) <= 300) {
 			if (isVillage) {
 				List<VillagerEntity> villagersNearby = world.getEntitiesByType(EntityType.VILLAGER,
-																			   new Box(blockPos.getX() - SPAWN_RADIUS,
-																					   blockPos.getY() - SPAWN_RADIUS,
-																					   blockPos.getZ() - SPAWN_RADIUS,
-																					   blockPos.getX() + SPAWN_RADIUS,
-																					   blockPos.getY() + SPAWN_RADIUS,
-																					   blockPos.getZ() + SPAWN_RADIUS),
-																			   villagerEntity -> true);
+					new Box(blockPos.getX() - SPAWN_RADIUS,
+						blockPos.getY() - SPAWN_RADIUS,
+						blockPos.getZ() - SPAWN_RADIUS,
+						blockPos.getX() + SPAWN_RADIUS,
+						blockPos.getY() + SPAWN_RADIUS,
+						blockPos.getZ() + SPAWN_RADIUS),
+					villagerEntity -> true);
 
 				if (villagersNearby.isEmpty() && world.isRegionLoaded(
 					blockPos.getX() - 10, blockPos.getY() - 10, blockPos.getZ() - 10,
@@ -138,7 +138,7 @@ public class RoachSpawner implements Spawner {
 
 	private int spawnInHouse(ServerWorld world, BlockPos pos) {
 		if (world.getPointOfInterestStorage().count((registryEntry) -> registryEntry.matchesKey(PointOfInterestTypes.HOME), pos,
-													48, PointOfInterestStorage.OccupationStatus.HAS_SPACE) > 4) {
+			48, PointOfInterestStorage.OccupationStatus.HAS_SPACE) > 4) {
 			List<RoachEntity> list = world.getNonSpectatingEntities(RoachEntity.class, (new Box(pos)).expand(48.0D, 8.0D, 48.0D));
 			if (list.size() < 12) {
 				return this.spawn(pos, world);

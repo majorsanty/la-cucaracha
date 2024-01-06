@@ -63,8 +63,8 @@ public class SplashBottledRoachItem extends Item {
 			target = l;
 		} else {
 			target = world.getClosestEntity(LivingEntity.class, TargetPredicate.createAttackable()
-												.setPredicate(living -> !(living instanceof RoachEntity)), null, pos.getX(), pos.getY(), pos.getZ(),
-											new Box(result.getPos().add(-1, -1, -1), result.getPos().add(1, 1, 1)));
+					.setPredicate(living -> !(living instanceof RoachEntity)), null, pos.getX(), pos.getY(), pos.getZ(),
+				new Box(result.getPos().add(-1, -1, -1), result.getPos().add(1, 1, 1)));
 		}
 		RoachEntity.spawnRoaches(world, target, pos, random, amount, true);
 	}
@@ -72,7 +72,7 @@ public class SplashBottledRoachItem extends Item {
 	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
 		ItemStack itemStack = user.getStackInHand(hand);
 		world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_SPLASH_POTION_THROW, SoundCategory.PLAYERS, 0.5F,
-						0.4F / (world.getRandom().nextFloat() * 0.4F + 0.8F));
+			0.4F / (world.getRandom().nextFloat() * 0.4F + 0.8F));
 
 		if (!world.isClient) {
 			SplashBottledRoachEntity entity = new SplashBottledRoachEntity(world, user);

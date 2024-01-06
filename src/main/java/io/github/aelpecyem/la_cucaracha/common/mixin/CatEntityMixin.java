@@ -18,7 +18,7 @@ public abstract class CatEntityMixin extends TameableEntity {
 	}
 
 	@Inject(method = "initGoals", at = @At("TAIL"))
-	private void cucaracha_addGoals(CallbackInfo ci)  {
+	private void cucaracha_addGoals(CallbackInfo ci) {
 		this.targetSelector.add(1, new ActiveTargetGoal<>(this, RoachEntity.class, false, null));
 	}
 }

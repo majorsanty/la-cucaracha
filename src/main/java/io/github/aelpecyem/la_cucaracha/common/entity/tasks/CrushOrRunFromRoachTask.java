@@ -20,7 +20,7 @@ public class CrushOrRunFromRoachTask extends MultiTickTask<VillagerEntity> {
 
 	public CrushOrRunFromRoachTask() {
 		super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryModuleState.VALUE_ABSENT,
-							  MemoryModuleType.VISIBLE_MOBS, MemoryModuleState.VALUE_PRESENT));
+			MemoryModuleType.VISIBLE_MOBS, MemoryModuleState.VALUE_PRESENT));
 	}
 
 	@Override
