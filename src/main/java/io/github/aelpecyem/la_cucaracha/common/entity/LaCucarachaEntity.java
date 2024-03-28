@@ -6,7 +6,6 @@ import io.github.aelpecyem.la_cucaracha.LaCucaracha;
 import mod.azure.azurelib.ai.pathing.AzureNavigation;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.EnchantingTableBlock;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.FuzzyTargeting;
 import net.minecraft.entity.ai.RangedAttackMob;

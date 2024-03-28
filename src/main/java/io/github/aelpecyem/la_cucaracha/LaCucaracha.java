@@ -66,7 +66,7 @@ public class LaCucaracha implements ModInitializer {
 	public static final Item ROACH_SPAWN_EGG_ITEM = new SpawnEggItem(ROACH_ENTITY_TYPE, 0x3d2a0f, 0x42392c,
 		new FabricItemSettings());
 	public static final EntityType<LaCucarachaEntity> LA_CUCARACHA_ENTITY_TYPE = EntityType.Builder.create(LaCucarachaEntity::new, SpawnGroup.MONSTER)
-		.setDimensions(2.25F, 1F).maxTrackingRange(16).trackingTickInterval(1).spawnableFarFromPlayer().makeFireImmune().build(MOD_ID + ":la_cucaracha");
+		.setDimensions(2.25F, 1F).maxTrackingRange(64).trackingTickInterval(1).spawnableFarFromPlayer().makeFireImmune().build(MOD_ID + ":la_cucaracha");
 	public static final Item LA_CUCARACHA_SPAWN_EGG_ITEM = new SpawnEggItem(LA_CUCARACHA_ENTITY_TYPE, 0x05a301, 0x3d2a0f,
 		new FabricItemSettings());
 	public static final EntityType<SplashBottledRoachEntity> SPLASH_BOTTLED_ROACH_ENTITY_TYPE =

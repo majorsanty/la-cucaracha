@@ -7,14 +7,16 @@
   "authors": [
     "CyberCat5555 (Concept/Assets)",
     "Aelpecyem (Code)",
-    "Assasingus14 (Sound Design)"
+    "Assasingus14 (Sound Design)",
+    "SantyPlays (Code, Boss)",
+    "iamthe1pablo (Sound Design/Boss Music)"
   ],
   "contact": {
     "homepage": "https://github.com/Aelpecyem/la-cucaracha",
     "issues": "https://github.com/Aelpecyem/la-cucaracha/issues",
     "sources": "https://github.com/Aelpecyem/la-cucaracha"
   },
-  "license": "CC0-1.0",
+  "license": "ARR",
   "icon": "assets/la_cucaracha/icon.png",
   "environment": "*",
   "entrypoints": {
